@@ -1,0 +1,6 @@
+{
+  "name": "Order Tracker",
+  "description": "Daily order, tip, and fuel expense tracker with performance reports, target tracking, and salary calculations for delivery drivers.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
