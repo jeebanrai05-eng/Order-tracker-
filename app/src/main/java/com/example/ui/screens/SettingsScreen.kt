@@ -23,8 +23,10 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CloudDone
+import androidx.compose.material.icons.filled.SystemUpdate
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material3.AlertDialog
@@ -115,6 +117,11 @@ fun SettingsScreen(
 
   // Clear data confirmation dialog
   var showClearConfirmDialog by remember { mutableStateOf(false) }
+
+  // App self-update states
+  val isCheckingUpdate by viewModel.isCheckingUpdate.collectAsState()
+  var customUpdateUrl by remember { mutableStateOf("") }
+  var showUpdateUrlConfig by remember { mutableStateOf(false) }
 
   Box(
     modifier = modifier
@@ -903,6 +910,146 @@ fun SettingsScreen(
             .testTag("btn_clear_data")
         ) {
           Text("CLEAR DATA", fontWeight = FontWeight.Bold, fontSize = 13.sp)
+        }
+      }
+
+      Spacer(modifier = Modifier.height(24.dp))
+
+      // 5. Section: APP VERSION & GITHUB SELF-UPDATE
+      Text(
+        text = "APP VERSION & SECURE SELF-UPDATE",
+        fontSize = 13.sp,
+        fontWeight = FontWeight.Bold,
+        color = MaterialTheme.colorScheme.onSurfaceVariant,
+        letterSpacing = 0.8.sp
+      )
+
+      Spacer(modifier = Modifier.height(10.dp))
+
+      Card(
+        modifier = Modifier
+          .fillMaxWidth()
+          .testTag("card_self_update"),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+        shape = RoundedCornerShape(20.dp),
+        border = CardDefaults.outlinedCardBorder()
+      ) {
+        Column(
+          modifier = Modifier
+            .fillMaxWidth()
+            .padding(18.dp)
+        ) {
+          Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+          ) {
+            Column(modifier = Modifier.weight(1f)) {
+              Text(
+                text = "Order Tracker",
+                fontSize = 16.sp,
+                fontWeight = FontWeight.Bold,
+                color = MaterialTheme.colorScheme.onSurface
+              )
+              Text(
+                text = "Version ${viewModel.updateManager.currentVersionName} (Build ${viewModel.updateManager.currentVersionCode})",
+                fontSize = 13.sp,
+                fontWeight = FontWeight.SemiBold,
+                color = currentThemeColors.primary
+              )
+              Text(
+                text = "Package: ${viewModel.updateManager.packageName}",
+                fontSize = 11.sp,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+              )
+            }
+
+            Button(
+              onClick = {
+                viewModel.checkForUpdates(customUpdateUrl.ifBlank { null })
+              },
+              enabled = !isCheckingUpdate,
+              shape = RoundedCornerShape(12.dp),
+              colors = ButtonDefaults.buttonColors(
+                containerColor = currentThemeColors.primary,
+                contentColor = Color.Black
+              ),
+              modifier = Modifier.testTag("btn_check_updates")
+            ) {
+              if (isCheckingUpdate) {
+                com.example.ui.components.ModernLoadingIndicator(size = 18.dp, strokeWidth = 2.dp)
+              } else {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                  Icon(
+                    imageVector = Icons.Default.SystemUpdate,
+                    contentDescription = null,
+                    modifier = Modifier.size(16.dp)
+                  )
+                  Spacer(modifier = Modifier.width(6.dp))
+                  Text("Check", fontWeight = FontWeight.Bold, fontSize = 12.sp)
+                }
+              }
+            }
+          }
+
+          Spacer(modifier = Modifier.height(12.dp))
+
+          // Security Features Badge
+          Row(
+            modifier = Modifier
+              .fillMaxWidth()
+              .clip(RoundedCornerShape(10.dp))
+              .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.35f))
+              .padding(horizontal = 10.dp, vertical = 8.dp),
+            verticalAlignment = Alignment.CenterVertically
+          ) {
+            Text(text = "🛡️", fontSize = 14.sp)
+            Spacer(modifier = Modifier.width(8.dp))
+            Text(
+              text = "SHA-256 cryptographic checksum & signing certificate verified prior to installation.",
+              fontSize = 11.sp,
+              color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+          }
+
+          Spacer(modifier = Modifier.height(10.dp))
+
+          // Toggle custom update URL
+          Row(
+            modifier = Modifier
+              .fillMaxWidth()
+              .clickable { showUpdateUrlConfig = !showUpdateUrlConfig }
+              .padding(vertical = 4.dp),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+          ) {
+            Text(
+              text = if (showUpdateUrlConfig) "Hide Update Source ▲" else "Configure Update Source / GitHub URL ▼",
+              fontSize = 11.sp,
+              fontWeight = FontWeight.SemiBold,
+              color = currentThemeColors.primary
+            )
+          }
+
+          AnimatedVisibility(visible = showUpdateUrlConfig) {
+            Column(modifier = Modifier.padding(top = 8.dp)) {
+              OutlinedTextField(
+                value = customUpdateUrl,
+                onValueChange = { customUpdateUrl = it },
+                label = { Text("Manifest URL (version.json)") },
+                placeholder = { Text(com.example.data.update.UpdateManager.DEFAULT_MANIFEST_URL) },
+                singleLine = true,
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(12.dp)
+              )
+              Spacer(modifier = Modifier.height(4.dp))
+              Text(
+                text = "Default: GitHub raw version.json from repository main branch.",
+                fontSize = 10.sp,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+              )
+            }
+          }
         }
       }
 

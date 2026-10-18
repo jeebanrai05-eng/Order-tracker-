@@ -140,6 +140,22 @@ fun OrderTrackerApp(
     )
   }
 
+  // Self-Update Modal Dialog with progress and cryptographic verification
+  val updateCheckResult by viewModel.updateCheckResult.collectAsState()
+  val downloadStatus by viewModel.downloadStatus.collectAsState()
+
+  (updateCheckResult as? com.example.data.update.UpdateCheckResult.UpdateAvailable)?.let { update ->
+    com.example.ui.components.UpdateDialog(
+      manifest = update.manifest,
+      currentVersionName = update.currentVersionName,
+      currentVersionCode = update.currentVersionCode,
+      downloadStatus = downloadStatus,
+      onStartDownload = { viewModel.startDownloadUpdate(update.manifest) },
+      onInstall = { uri -> viewModel.installDownloadedApk(uri) },
+      onDismiss = { viewModel.dismissUpdateDialog() }
+    )
+  }
+
   // Modern Fullscreen Loading Overlay during sync operations (when auth dialog is closed)
   if (isSyncing && !showAuthDialog) {
     ModernLoadingOverlay(

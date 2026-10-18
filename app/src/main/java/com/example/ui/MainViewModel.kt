@@ -21,6 +21,10 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import com.example.data.update.DownloadStatus
+import com.example.data.update.UpdateCheckResult
+import com.example.data.update.UpdateManager
+import com.example.data.update.UpdateManifest
 import java.util.Calendar
 
 enum class NavigationTab {
@@ -83,6 +87,17 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
   fun setEditingDay(day: Int?) {
     _editingDay.value = day
   }
+
+  val updateManager = UpdateManager(application)
+
+  private val _updateCheckResult = MutableStateFlow<UpdateCheckResult?>(null)
+  val updateCheckResult: StateFlow<UpdateCheckResult?> = _updateCheckResult.asStateFlow()
+
+  private val _downloadStatus = MutableStateFlow<DownloadStatus>(DownloadStatus.Idle)
+  val downloadStatus: StateFlow<DownloadStatus> = _downloadStatus.asStateFlow()
+
+  private val _isCheckingUpdate = MutableStateFlow(false)
+  val isCheckingUpdate: StateFlow<Boolean> = _isCheckingUpdate.asStateFlow()
 
   // Flow of orders for the selected year and month
   val ordersList: StateFlow<List<OrderDayEntity>> = combine(_selectedYear, _selectedMonth) { year, month ->
@@ -376,5 +391,43 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
   suspend fun exportReport(): String {
     val curr = settings.value.currency
     return orderRepository.exportMonthReportText(_selectedYear.value, _selectedMonth.value, curr)
+  }
+
+  fun checkForUpdates(customUrl: String? = null) {
+    viewModelScope.launch {
+      _isCheckingUpdate.value = true
+      val url = if (!customUrl.isNullOrBlank()) customUrl.trim() else UpdateManager.DEFAULT_MANIFEST_URL
+      val result = updateManager.checkUpdate(url)
+      _isCheckingUpdate.value = false
+      _updateCheckResult.value = result
+      when (result) {
+        is UpdateCheckResult.UpToDate -> {
+          _snackbarMessage.emit("App is up to date (${result.currentVersionName})")
+        }
+        is UpdateCheckResult.Error -> {
+          _snackbarMessage.emit("Update check: ${result.message}")
+        }
+        is UpdateCheckResult.UpdateAvailable -> {
+          _snackbarMessage.emit("Update found: ${result.manifest.versionName}!")
+        }
+      }
+    }
+  }
+
+  fun startDownloadUpdate(manifest: UpdateManifest) {
+    viewModelScope.launch {
+      updateManager.downloadAndVerify(manifest).collect { status ->
+        _downloadStatus.value = status
+      }
+    }
+  }
+
+  fun installDownloadedApk(apkUri: android.net.Uri) {
+    updateManager.promptInstallApk(apkUri)
+  }
+
+  fun dismissUpdateDialog() {
+    _updateCheckResult.value = null
+    _downloadStatus.value = DownloadStatus.Idle
   }
 }
