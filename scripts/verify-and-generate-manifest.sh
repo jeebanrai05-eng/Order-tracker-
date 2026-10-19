@@ -5,8 +5,8 @@ set -euo pipefail
 # Usage: ./verify-and-generate-manifest.sh [REPO_NAME] [TAG_NAME] [OPTIONAL_NOTES] [APK_PATH]
 
 REPO_NAME="${1:-"jeebanrai05_eng/Order-tracker-"}"
-TAG_NAME="${2:-"v1.1.0"}"
-CUSTOM_NOTES="${3:-"Enhanced UI with smooth animations, animated day filters (Worked/Fuel/Goal), milestone celebration card, and seamless self-update system."}"
+TAG_NAME="${2:-"v1.0.2"}"
+CUSTOM_NOTES="${3:-"New Release v1.0.2: Animated filter chips, Milestone progress card, smooth transitions, and seamless self-update."}"
 APK_PATH="${4:-"app/build/outputs/apk/release/app-release.apk"}"
 
 if [ ! -f "$APK_PATH" ]; then

@@ -10,9 +10,9 @@ on:
   workflow_dispatch:
     inputs:
       tag_name:
-        description: 'Release Tag (leave empty to auto-detect from app version e.g. v1.1.0)'
+        description: 'Release Tag (leave empty to auto-detect e.g. v1.0.2)'
         required: false
-        default: ''
+        default: 'v1.0.2'
       release_notes:
         description: 'Release Notes for this build'
         required: false
