@@ -99,6 +99,18 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
   private val _isCheckingUpdate = MutableStateFlow(false)
   val isCheckingUpdate: StateFlow<Boolean> = _isCheckingUpdate.asStateFlow()
 
+  init {
+    viewModelScope.launch {
+      kotlinx.coroutines.delay(2500)
+      try {
+        val result = updateManager.checkUpdate()
+        if (result is UpdateCheckResult.UpdateAvailable) {
+          _updateCheckResult.value = result
+        }
+      } catch (_: Exception) {}
+    }
+  }
+
   // Flow of orders for the selected year and month
   val ordersList: StateFlow<List<OrderDayEntity>> = combine(_selectedYear, _selectedMonth) { year, month ->
     Pair(year, month)

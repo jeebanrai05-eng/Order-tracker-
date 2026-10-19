@@ -7,13 +7,13 @@ on:
   workflow_dispatch:
     inputs:
       tag_name:
-        description: 'Release Tag (e.g. v1.0, v1.1)'
+        description: 'Release Tag (e.g. v1.1.0, v1.2.0)'
         required: false
-        default: 'v1.0'
+        default: 'v1.1.0'
       release_notes:
         description: 'Release Notes for this build'
         required: false
-        default: 'General bug fixes, stability improvements, and UI refinements.'
+        default: 'New features: Animated filter chips, Milestone progress card, smooth transitions, and self-update.'
 
 permissions:
   contents: write

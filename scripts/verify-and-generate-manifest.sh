@@ -4,9 +4,9 @@ set -euo pipefail
 # Script to verify release APK integrity, extract cryptographic hashes, and generate version.json manifest.
 # Usage: ./verify-and-generate-manifest.sh [REPO_NAME] [TAG_NAME] [OPTIONAL_NOTES] [APK_PATH]
 
-REPO_NAME="${1:-"ordercom/order-tracker"}"
-TAG_NAME="${2:-"v1.0"}"
-CUSTOM_NOTES="${3:-"Regular bug fixes, UI improvements, and performance optimizations."}"
+REPO_NAME="${1:-"jeebanrai05_eng/Order-tracker-"}"
+TAG_NAME="${2:-"v1.1.0"}"
+CUSTOM_NOTES="${3:-"Enhanced UI with smooth animations, animated day filters (Worked/Fuel/Goal), milestone celebration card, and seamless self-update system."}"
 APK_PATH="${4:-"app/build/outputs/apk/release/app-release.apk"}"
 
 if [ ! -f "$APK_PATH" ]; then

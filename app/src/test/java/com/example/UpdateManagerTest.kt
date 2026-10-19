@@ -53,9 +53,10 @@ class UpdateManagerTest {
 
   @Test
   fun `checkUpdate detects available new version when remote version is higher`() = runBlocking {
+    val higherVersionCode = updateManager.currentVersionCode + 1
     val manifestJson = JSONObject().apply {
-      put("versionCode", 2)
-      put("versionName", "1.1")
+      put("versionCode", higherVersionCode)
+      put("versionName", "2.0")
       put("packageName", context.packageName)
       put("downloadUrl", url("/app-release.apk"))
       put("fileSize", 1024L)
@@ -77,8 +78,8 @@ class UpdateManagerTest {
 
     assertTrue(result is UpdateCheckResult.UpdateAvailable)
     val update = result as UpdateCheckResult.UpdateAvailable
-    assertEquals(2, update.manifest.versionCode)
-    assertEquals("1.1", update.manifest.versionName)
+    assertEquals(higherVersionCode, update.manifest.versionCode)
+    assertEquals("2.0", update.manifest.versionName)
     assertEquals(context.packageName, update.manifest.packageName)
     assertEquals("New in-app features and optimizations", update.manifest.releaseNotes)
   }

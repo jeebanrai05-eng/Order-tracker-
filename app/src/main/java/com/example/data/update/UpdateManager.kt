@@ -37,7 +37,8 @@ class UpdateManager(private val context: Context) {
    * Can be overridden by user in settings.
    */
   companion object {
-    const val DEFAULT_MANIFEST_URL = "https://raw.githubusercontent.com/ordercom/order-tracker/main/version.json"
+    const val DEFAULT_MANIFEST_URL = "https://github.com/jeebanrai05_eng/Order-tracker-/releases/latest/download/version.json"
+    const val FALLBACK_RAW_URL = "https://raw.githubusercontent.com/jeebanrai05_eng/Order-tracker-/main/version.json"
   }
 
   val currentVersionCode: Int
@@ -53,21 +54,29 @@ class UpdateManager(private val context: Context) {
    * Checks the remote manifest for an update.
    */
   suspend fun checkUpdate(manifestUrl: String = DEFAULT_MANIFEST_URL): UpdateCheckResult = withContext(Dispatchers.IO) {
-    try {
-      val request = Request.Builder()
-        .url(manifestUrl)
-        .header("User-Agent", "OrderTracker-Android/${BuildConfig.VERSION_NAME}")
-        .build()
+    val urlsToTry = if (manifestUrl == DEFAULT_MANIFEST_URL) {
+      listOf(DEFAULT_MANIFEST_URL, FALLBACK_RAW_URL)
+    } else {
+      listOf(manifestUrl)
+    }
 
-      val response = okHttpClient.newCall(request).execute()
-      if (!response.isSuccessful) {
-        return@withContext UpdateCheckResult.Error(
-          "Server returned HTTP ${response.code}: ${response.message}"
-        )
-      }
+    var lastErrorMessage: String = "Unable to connect to update server"
 
-      val bodyString = response.body?.string() ?: return@withContext UpdateCheckResult.Error("Empty update response")
-      val json = JSONObject(bodyString)
+    for (url in urlsToTry) {
+      try {
+        val request = Request.Builder()
+          .url(url)
+          .header("User-Agent", "OrderTracker-Android/${BuildConfig.VERSION_NAME}")
+          .build()
+
+        val response = okHttpClient.newCall(request).execute()
+        if (!response.isSuccessful) {
+          lastErrorMessage = "Server returned HTTP ${response.code}: ${response.message}"
+          continue
+        }
+
+        val bodyString = response.body?.string() ?: continue
+        val json = JSONObject(bodyString)
 
       val remotePackageName = json.optString("packageName", "")
       if (remotePackageName.isNotBlank() && remotePackageName != context.packageName) {
@@ -99,21 +108,23 @@ class UpdateManager(private val context: Context) {
         isMandatory = isMandatory
       )
 
-      if (remoteVersionCode > currentVersionCode) {
-        UpdateCheckResult.UpdateAvailable(
-          manifest = manifest,
-          currentVersionCode = currentVersionCode,
-          currentVersionName = currentVersionName
-        )
-      } else {
-        UpdateCheckResult.UpToDate(
-          currentVersionCode = currentVersionCode,
-          currentVersionName = currentVersionName
-        )
+        return@withContext if (remoteVersionCode > currentVersionCode) {
+          UpdateCheckResult.UpdateAvailable(
+            manifest = manifest,
+            currentVersionCode = currentVersionCode,
+            currentVersionName = currentVersionName
+          )
+        } else {
+          UpdateCheckResult.UpToDate(
+            currentVersionCode = currentVersionCode,
+            currentVersionName = currentVersionName
+          )
+        }
+      } catch (e: Exception) {
+        lastErrorMessage = "Failed to check for updates: ${e.localizedMessage ?: e.message}"
       }
-    } catch (e: Exception) {
-      UpdateCheckResult.Error("Failed to check for updates: ${e.localizedMessage ?: e.message}", e)
     }
+    return@withContext UpdateCheckResult.Error(lastErrorMessage)
   }
 
   /**
