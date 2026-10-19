@@ -4,7 +4,7 @@
   "packageName": "com.ordercom",
   "downloadUrl": "https://github.com/jeebanrai05-eng/Order-tracker-/releases/download/v1.0.2/app-release.apk",
   "fileSize": 20566563,
-  "sha256": "331122385f43ba62bf3458ec99a3283a956b31eb82e216e20ca082cc5892ce72",
+  "sha256": "0a2278eed3fcf7969f387ebe5c5eb8771e097e9ebbabae93a5ec6fcc3d6feb9a",
   "certSha256": "2523424FDCA4A6EFAF07756779949EF531C579219488036E19426ADB5DFA9B95",
   "releaseNotes": "New Release v1.0.2: Animated filter chips, Milestone progress card, smooth transitions, and seamless self-update.",
   "releaseDate": "2026-10-19",
