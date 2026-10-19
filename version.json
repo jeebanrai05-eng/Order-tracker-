@@ -4,9 +4,9 @@
   "packageName": "com.ordercom",
   "downloadUrl": "https://github.com/jeebanrai05-eng/Order-tracker-/releases/download/v1.1.0/app-release.apk",
   "fileSize": 20566563,
-  "sha256": "fb88532c7ed33021c67b56443caa62836d41734b1eb110f9b5e7eaa778223999",
+  "sha256": "318bdd405256e2fb2e3904516e1274f097c13bf1e24a1b4df9978c80fb17514c",
   "certSha256": "2523424FDCA4A6EFAF07756779949EF531C579219488036E19426ADB5DFA9B95",
-  "releaseNotes": "New features: Animated filter chips, Milestone progress card, smooth transitions, and self-update.",
+  "releaseNotes": "Enhanced UI with smooth animations, animated day filters (Worked/Fuel/Goal), milestone celebration card, and seamless self-update system.",
   "releaseDate": "2026-10-19",
   "isMandatory": false
 }
