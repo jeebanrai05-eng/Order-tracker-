@@ -2,11 +2,11 @@
   "versionCode": 1,
   "versionName": "1.0",
   "packageName": "com.ordercom",
-  "downloadUrl": "https://github.com/ordercom/order-tracker/releases/download/v1.0/app-release.apk",
-  "fileSize": 20553627,
-  "sha256": "5f6e3b9f4abab85d828d0c977b1d062984cd3feb785ec28e4b8c541e49b8ddb3",
-  "certSha256": "E862DC539B09EC96F84A5983E4DC7A4C55AD95ABA2DDE47A7CADEC2ED452C7B5",
-  "releaseNotes": "First production release with secure self-update and cloud sync.",
-  "releaseDate": "2026-10-18",
+  "downloadUrl": "https://github.com/jeebanrai05-eng/Order-tracker-/releases/download/v1.0/app-release.apk",
+  "fileSize": 20550179,
+  "sha256": "880aa99d328c4d64bb20550b975ec649de597bf0216f5ed396efb6cb4fb61970",
+  "certSha256": "2523424FDCA4A6EFAF07756779949EF531C579219488036E19426ADB5DFA9B95",
+  "releaseNotes": "General bug fixes, stability improvements, and UI refinements.",
+  "releaseDate": "2026-10-19",
   "isMandatory": false
 }
