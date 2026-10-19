@@ -142,6 +142,7 @@ EOF
 if [ -n "${GITHUB_OUTPUT:-}" ]; then
   echo "version_code=$VER_CODE" >> "$GITHUB_OUTPUT"
   echo "version_name=$VER_NAME" >> "$GITHUB_OUTPUT"
+  echo "tag_name=$TAG_NAME" >> "$GITHUB_OUTPUT"
   echo "apk_sha256=$APK_SHA256" >> "$GITHUB_OUTPUT"
   echo "cert_sha256=$CERT_SHA256" >> "$GITHUB_OUTPUT"
 fi

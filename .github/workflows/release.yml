@@ -6,6 +6,10 @@ on:
       - 'v*'
   workflow_dispatch:
     inputs:
+      tag_name:
+        description: 'Release Tag (e.g. v1.0, v1.1)'
+        required: false
+        default: 'v1.0'
       release_notes:
         description: 'Release Notes for this build'
         required: false
@@ -37,7 +41,14 @@ jobs:
 
           if [ ${#MISSING_SECRETS[@]} -ne 0 ]; then
             echo "::error::Missing required GitHub Secrets: ${MISSING_SECRETS[*]}"
-            echo "Please configure them under: Settings -> Secrets and variables -> Actions"
+            echo "=========================================================================="
+            echo "REQUIRED ACTION: Add the 4 signing secrets in your GitHub repository:"
+            echo "GitHub Repo -> Settings -> Secrets and variables -> Actions -> New repository secret"
+            echo "1. RELEASE_KEYSTORE_BASE64"
+            echo "2. RELEASE_STORE_PASSWORD"
+            echo "3. RELEASE_KEY_ALIAS"
+            echo "4. RELEASE_KEY_PASSWORD"
+            echo "=========================================================================="
             exit 1
           fi
           echo "All required signing secrets are present."
@@ -53,9 +64,10 @@ jobs:
       # Step 3: Decode Permanent Production Keystore
       - name: Decode Production Keystore
         run: |
-          echo "${{ secrets.RELEASE_KEYSTORE_BASE64 }}" | base64 --decode > "$GITHUB_WORKSPACE/release-keystore.jks"
+          echo "${{ secrets.RELEASE_KEYSTORE_BASE64 }}" | tr -d '\r\n ' | base64 -d > "$GITHUB_WORKSPACE/release-keystore.jks" 2>/dev/null || \
+          echo "${{ secrets.RELEASE_KEYSTORE_BASE64 }}" | tr -d '\r\n ' | base64 --decode > "$GITHUB_WORKSPACE/release-keystore.jks"
           if [ ! -s "$GITHUB_WORKSPACE/release-keystore.jks" ]; then
-            echo "::error::Decoded release-keystore.jks is empty or corrupted!"
+            echo "::error::Decoded release-keystore.jks is empty or corrupted! Check RELEASE_KEYSTORE_BASE64 secret."
             exit 1
           fi
           echo "Keystore successfully decoded."
@@ -63,9 +75,6 @@ jobs:
       # Step 4: Ensure Gradle Executable
       - name: Prepare Gradle Wrapper
         run: |
-          if [ ! -f "gradlew" ]; then
-            gradle wrapper
-          fi
           chmod +x gradlew
 
       # Step 5: Run Automated Unit & Robolectric Tests
@@ -86,7 +95,7 @@ jobs:
         id: verify_apk
         env:
           REPO_NAME: ${{ github.repository }}
-          TAG_NAME: ${{ github.ref_name }}
+          TAG_NAME: ${{ github.ref_type == 'tag' && github.ref_name || inputs.tag_name || 'v1.0' }}
           CUSTOM_NOTES: ${{ inputs.release_notes }}
         run: |
           chmod +x scripts/verify-and-generate-manifest.sh
@@ -96,6 +105,7 @@ jobs:
       - name: Publish GitHub Release
         uses: softprops/action-gh-release@v2
         with:
+          tag_name: ${{ steps.verify_apk.outputs.tag_name }}
           files: |
             app/build/outputs/apk/release/app-release.apk
             version.json
