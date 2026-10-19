@@ -4,12 +4,15 @@ on:
   push:
     tags:
       - 'v*'
+    branches:
+      - main
+      - master
   workflow_dispatch:
     inputs:
       tag_name:
-        description: 'Release Tag (e.g. v1.1.0, v1.2.0)'
+        description: 'Release Tag (leave empty to auto-detect from app version e.g. v1.1.0)'
         required: false
-        default: 'v1.1.0'
+        default: ''
       release_notes:
         description: 'Release Notes for this build'
         required: false
@@ -95,7 +98,7 @@ jobs:
         id: verify_apk
         env:
           REPO_NAME: ${{ github.repository }}
-          TAG_NAME: ${{ github.ref_type == 'tag' && github.ref_name || inputs.tag_name || 'v1.0' }}
+          TAG_NAME: ${{ github.ref_type == 'tag' && github.ref_name || inputs.tag_name || '' }}
           CUSTOM_NOTES: ${{ inputs.release_notes }}
         run: |
           chmod +x scripts/verify-and-generate-manifest.sh

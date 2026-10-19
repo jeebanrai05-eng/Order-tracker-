@@ -86,7 +86,11 @@ echo "Verified Package: $PKG_NAME"
 echo "Verified Version Code: $VER_CODE"
 echo "Verified Version Name: $VER_NAME"
 
-# Clean clean tag name (strip 'v' prefix if present)
+# If TAG_NAME is main, master, or empty, auto-default to v{VER_NAME}
+if [ -z "$TAG_NAME" ] || [ "$TAG_NAME" = "main" ] || [ "$TAG_NAME" = "master" ]; then
+  TAG_NAME="v${VER_NAME}"
+fi
+
 CLEAN_TAG="${TAG_NAME#v}"
 RELEASE_DATE=$(date -u +"%Y-%m-%d")
 DOWNLOAD_URL="https://github.com/${REPO_NAME}/releases/download/${TAG_NAME}/app-release.apk"
