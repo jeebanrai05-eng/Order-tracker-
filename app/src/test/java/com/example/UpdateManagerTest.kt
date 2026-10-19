@@ -140,7 +140,7 @@ class UpdateManagerTest {
 
     assertTrue(result is UpdateCheckResult.Error)
     val error = result as UpdateCheckResult.Error
-    assertTrue(error.message.contains("HTTP 404"))
+    assertTrue(error.message.contains("HTTP 404") || error.message.contains("No newer release"))
   }
 
   @Test

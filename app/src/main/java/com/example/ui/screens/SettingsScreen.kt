@@ -120,8 +120,6 @@ fun SettingsScreen(
 
   // App self-update states
   val isCheckingUpdate by viewModel.isCheckingUpdate.collectAsState()
-  var customUpdateUrl by remember { mutableStateOf("") }
-  var showUpdateUrlConfig by remember { mutableStateOf(false) }
 
   Box(
     modifier = modifier
@@ -566,7 +564,7 @@ fun SettingsScreen(
             .padding(18.dp)
         ) {
           Text(
-            text = "Set your target earnings per shift. Progress is tracked automatically on each day and securely backed up to Firestore.",
+            text = "Set your target earnings per shift. Progress is tracked automatically on each day and securely backed up.",
             fontSize = 13.sp,
             color = MaterialTheme.colorScheme.onSurfaceVariant
           )
@@ -618,7 +616,7 @@ fun SettingsScreen(
             Text(text = "☁️", fontSize = 12.sp)
             Spacer(modifier = Modifier.width(4.dp))
             Text(
-              text = "Saved and synchronized with Firebase Firestore",
+              text = "Saved and synchronized securely with Cloud Backup",
               fontSize = 11.sp,
               color = currentThemeColors.primary,
               fontWeight = FontWeight.SemiBold
@@ -957,16 +955,11 @@ fun SettingsScreen(
                 fontWeight = FontWeight.SemiBold,
                 color = currentThemeColors.primary
               )
-              Text(
-                text = "Package: ${viewModel.updateManager.packageName}",
-                fontSize = 11.sp,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-              )
             }
 
             Button(
               onClick = {
-                viewModel.checkForUpdates(customUpdateUrl.ifBlank { null })
+                viewModel.checkForUpdates()
               },
               enabled = !isCheckingUpdate,
               shape = RoundedCornerShape(12.dp),
@@ -1010,45 +1003,6 @@ fun SettingsScreen(
               fontSize = 11.sp,
               color = MaterialTheme.colorScheme.onSurfaceVariant
             )
-          }
-
-          Spacer(modifier = Modifier.height(10.dp))
-
-          // Toggle custom update URL
-          Row(
-            modifier = Modifier
-              .fillMaxWidth()
-              .clickable { showUpdateUrlConfig = !showUpdateUrlConfig }
-              .padding(vertical = 4.dp),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically
-          ) {
-            Text(
-              text = if (showUpdateUrlConfig) "Hide Update Source ▲" else "Configure Update Source / GitHub URL ▼",
-              fontSize = 11.sp,
-              fontWeight = FontWeight.SemiBold,
-              color = currentThemeColors.primary
-            )
-          }
-
-          AnimatedVisibility(visible = showUpdateUrlConfig) {
-            Column(modifier = Modifier.padding(top = 8.dp)) {
-              OutlinedTextField(
-                value = customUpdateUrl,
-                onValueChange = { customUpdateUrl = it },
-                label = { Text("Manifest URL (version.json)") },
-                placeholder = { Text(com.example.data.update.UpdateManager.DEFAULT_MANIFEST_URL) },
-                singleLine = true,
-                modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(12.dp)
-              )
-              Spacer(modifier = Modifier.height(4.dp))
-              Text(
-                text = "Default: GitHub raw version.json from repository main branch.",
-                fontSize = 10.sp,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-              )
-            }
           }
         }
       }

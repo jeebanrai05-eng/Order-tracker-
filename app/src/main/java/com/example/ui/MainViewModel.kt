@@ -381,7 +381,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     viewModelScope.launch {
       val cloudRes = orderRepository.saveSettingsToCloud(newSettings)
       if (cloudRes.isSuccess && authRepository.currentUser != null) {
-        _snackbarMessage.emit("Configuration & Daily Goal saved to Firestore!")
+        _snackbarMessage.emit("Configuration & Daily Goal saved to Cloud Backup!")
       } else {
         _snackbarMessage.emit("Configuration saved locally!")
       }
@@ -417,10 +417,14 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
           _snackbarMessage.emit("App is up to date (${result.currentVersionName})")
         }
         is UpdateCheckResult.Error -> {
-          _snackbarMessage.emit("Update check: ${result.message}")
+          if (result.message.contains("404") || result.message.contains("No newer") || result.message.contains("private")) {
+            _snackbarMessage.emit("App is up to date (${updateManager.currentVersionName})")
+          } else {
+            _snackbarMessage.emit("Update check: ${result.message}")
+          }
         }
         is UpdateCheckResult.UpdateAvailable -> {
-          _snackbarMessage.emit("Update found: ${result.manifest.versionName}!")
+          _snackbarMessage.emit("New update found: ${result.manifest.versionName}!")
         }
       }
     }

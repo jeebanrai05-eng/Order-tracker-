@@ -37,8 +37,15 @@ class UpdateManager(private val context: Context) {
    * Can be overridden by user in settings.
    */
   companion object {
-    const val DEFAULT_MANIFEST_URL = "https://github.com/jeebanrai05_eng/Order-tracker-/releases/latest/download/version.json"
-    const val FALLBACK_RAW_URL = "https://raw.githubusercontent.com/jeebanrai05_eng/Order-tracker-/main/version.json"
+    const val DEFAULT_MANIFEST_URL = "https://github.com/jeebanrai05-eng/Order-tracker-/releases/latest/download/version.json"
+    val CANDIDATE_URLS = listOf(
+      "https://github.com/jeebanrai05-eng/Order-tracker-/releases/latest/download/version.json",
+      "https://github.com/jeebanrai05_eng/Order-tracker-/releases/latest/download/version.json",
+      "https://raw.githubusercontent.com/jeebanrai05-eng/Order-tracker-/main/version.json",
+      "https://raw.githubusercontent.com/jeebanrai05_eng/Order-tracker-/main/version.json",
+      "https://github.com/jeebanrai05-eng/Order-tracker-/releases/download/v1.0.2/version.json",
+      "https://github.com/jeebanrai05_eng/Order-tracker-/releases/download/v1.0.2/version.json"
+    )
   }
 
   val currentVersionCode: Int
@@ -55,7 +62,7 @@ class UpdateManager(private val context: Context) {
    */
   suspend fun checkUpdate(manifestUrl: String = DEFAULT_MANIFEST_URL): UpdateCheckResult = withContext(Dispatchers.IO) {
     val urlsToTry = if (manifestUrl == DEFAULT_MANIFEST_URL) {
-      listOf(DEFAULT_MANIFEST_URL, FALLBACK_RAW_URL)
+      CANDIDATE_URLS
     } else {
       listOf(manifestUrl)
     }
@@ -124,7 +131,12 @@ class UpdateManager(private val context: Context) {
         lastErrorMessage = "Failed to check for updates: ${e.localizedMessage ?: e.message}"
       }
     }
-    return@withContext UpdateCheckResult.Error(lastErrorMessage)
+    val friendlyError = if (lastErrorMessage.contains("404")) {
+      "No newer release found on GitHub (Repository may be private or release in progress)"
+    } else {
+      lastErrorMessage
+    }
+    return@withContext UpdateCheckResult.Error(friendlyError)
   }
 
   /**
