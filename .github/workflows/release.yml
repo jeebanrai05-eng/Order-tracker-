@@ -79,7 +79,7 @@ jobs:
 
       # Step 5: Run Automated Unit & Robolectric Tests
       - name: Run Tests
-        run: ./gradlew testDebugUnitTest --no-daemon
+        run: ./gradlew testDebugUnitTest --no-daemon -Djava.awt.headless=true
 
       # Step 6: Build Signed Production APK
       - name: Build Signed Production APK
@@ -88,7 +88,7 @@ jobs:
           STORE_PASSWORD: ${{ secrets.RELEASE_STORE_PASSWORD }}
           KEY_ALIAS: ${{ secrets.RELEASE_KEY_ALIAS || 'upload' }}
           KEY_PASSWORD: ${{ secrets.RELEASE_KEY_PASSWORD }}
-        run: ./gradlew assembleRelease --no-daemon
+        run: ./gradlew assembleRelease --no-daemon -Djava.awt.headless=true
 
       # Step 7: Strict Release Verification & Manifest Generation
       - name: Verify Signed APK & Generate Update Manifest
@@ -116,14 +116,16 @@ jobs:
 
       # Step 9: Update version.json on main branch for raw GitHub updates
       - name: Commit version.json to Main Branch
+        continue-on-error: true
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git checkout main || git checkout master || true
-          cp version.json ./version.json
-          git add version.json
-          git commit -m "chore(release): update version.json for ${{ steps.verify_apk.outputs.version_name }} [skip ci]" || echo "No changes to commit"
-          git push origin HEAD || echo "Push skipped or branch protected"
+          if [ -f "version.json" ]; then
+            git add version.json
+            git commit -m "chore(release): update version.json for ${{ steps.verify_apk.outputs.version_name }} [skip ci]" || echo "No changes to commit"
+            git push origin HEAD || echo "Push skipped or branch protected"
+          fi
 
       # Step 10: Secure Keystore Cleanup
       - name: Cleanup Keystore
