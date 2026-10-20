@@ -1,8 +1,8 @@
-## Order Tracker 1.0.3 (Build 3)
+## Order Tracker 1.0.4 (Build 4)
 
 ### Release Information
-* **Version Name:** 1.0.3
-* **Version Code:** 3
+* **Version Name:** 1.0.4
+* **Version Code:** 4
 * **Package Name:** com.ordercom
 * **Release Date:** 2026-10-20
 * **File Size:** 19.62 MB (20570047 bytes)
@@ -10,7 +10,7 @@
 ### Security Verification
 * **APK SHA-256 Checksum:**
   ```
-  02d83305126c45908544100f84570783bcb3be64a76180b402048eee1c1dd2b0
+  c3c8cecf6f3c3101760c5ba5841dfbb0cd204ea888421aa42c7dd8a3dc985599
   ```
 * **Signing Certificate SHA-256 Fingerprint:**
   ```
@@ -18,7 +18,7 @@
   ```
 
 ### Changelog:
-Release v1.0.3: Google Sign-In & Cloud Sync auto-initialization, Live Shift Net Balance preview, What's New card, and UI polish.
+Release v1.0.4: Google Sign-In setup instructions, SHA-1 registration guidance, and self-update.
 
 ---
 *Verified and generated with automated cryptographic self-update manifest.*

@@ -88,7 +88,12 @@ class AuthRepository {
     val firebaseAuth = getFirebaseAuth(context) ?: return Result.failure(Exception("Cloud Auth service initializing. Please retry in a moment."))
     return try {
       val credentialManager = CredentialManager.create(context)
-      val clientId = "508672273546-mb8s1o2e01q4hjbf4icuo0a39h34q8m6.apps.googleusercontent.com"
+      val resId = context.resources.getIdentifier("default_web_client_id", "string", context.packageName)
+      val clientId = if (resId != 0) {
+        context.getString(resId)
+      } else {
+        "508672273546-mb8s1o2e01q4hjbf4icuo0a39h34q8m6.apps.googleusercontent.com"
+      }
 
       val googleIdOption = GetGoogleIdOption.Builder()
         .setFilterByAuthorizedAccounts(false)

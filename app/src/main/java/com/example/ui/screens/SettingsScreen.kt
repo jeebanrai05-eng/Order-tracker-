@@ -987,7 +987,7 @@ fun SettingsScreen(
 
           Spacer(modifier = Modifier.height(14.dp))
 
-          // What's New in v1.0.3 Section Card
+          // What's New in v1.0.4 Section Card
           Card(
             modifier = Modifier.fillMaxWidth(),
             shape = RoundedCornerShape(14.dp),
@@ -1004,7 +1004,7 @@ fun SettingsScreen(
                 Text(text = "✨", fontSize = 16.sp)
                 Spacer(modifier = Modifier.width(6.dp))
                 Text(
-                  text = "What's New in v1.0.3",
+                  text = "What's New in v1.0.4",
                   fontSize = 13.sp,
                   fontWeight = FontWeight.Bold,
                   color = currentThemeColors.primary
@@ -1012,7 +1012,7 @@ fun SettingsScreen(
               }
               Spacer(modifier = Modifier.height(8.dp))
               Text(
-                text = "• Google Sign-In & Cloud Sync: Auto-initialization with restored connectivity\n• Live Shift Calculator: Real-time net balance preview before saving entries\n• Enhanced Animated Milestone Card & Day Filter Chips\n• Cleaner professional UI and instant in-app update engine",
+                text = "• Google Sign-In & Cloud Sync: Dynamic Web Client ID and Credential Manager resolution\n• Instant 1-Tap Driver Login: Zero-friction authentication with automatic Cloud Sync\n• Live Shift Calculator: Real-time net balance preview before saving entries\n• Seamless in-app self-update engine with SHA-256 integrity verification",
                 fontSize = 11.sp,
                 lineHeight = 16.sp,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
