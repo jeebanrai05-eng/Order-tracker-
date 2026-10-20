@@ -101,7 +101,6 @@ fun AuthDialog(
   var passwordVisible by remember { mutableStateOf(false) }
   var errorMessage by remember { mutableStateOf<String?>(null) }
   var showResetSuccess by remember { mutableStateOf(false) }
-  var showSha1Info by remember { mutableStateOf(false) }
 
   val authErrorFromVm by viewModel.authError.collectAsState()
   androidx.compose.runtime.LaunchedEffect(authErrorFromVm) {
@@ -376,6 +375,7 @@ fun AuthDialog(
                   .clickable {
                     errorMessage = null
                     viewModel.quickDriverLogin()
+                    onDismiss()
                   }
                   .testTag("btn_modal_quick_driver_signin"),
                 shape = RoundedCornerShape(16.dp),
@@ -405,68 +405,6 @@ fun AuthDialog(
                       fontSize = 11.sp,
                       color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
-                  }
-                }
-              }
-
-              Spacer(modifier = Modifier.height(8.dp))
-
-              // 3. Fix Google Error 16 / SHA-1 Information Helper
-              Row(
-                modifier = Modifier
-                  .fillMaxWidth()
-                  .clip(RoundedCornerShape(8.dp))
-                  .clickable { showSha1Info = !showSha1Info }
-                  .padding(vertical = 6.dp, horizontal = 4.dp),
-                horizontalArrangement = Arrangement.Center,
-                verticalAlignment = Alignment.CenterVertically
-              ) {
-                Text(
-                  text = if (showSha1Info) "Hide Google Error 16 Fix ▲" else "ℹ️ Google Sign-In Error 16 Fix & SHA-1 ▼",
-                  fontSize = 12.sp,
-                  fontWeight = FontWeight.SemiBold,
-                  color = themeColors.primary
-                )
-              }
-
-              AnimatedVisibility(visible = showSha1Info) {
-                Card(
-                  modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(vertical = 4.dp),
-                  shape = RoundedCornerShape(14.dp),
-                  colors = CardDefaults.cardColors(
-                    containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.45f)
-                  )
-                ) {
-                  Column(modifier = Modifier.padding(14.dp)) {
-                    Text(
-                      text = "Why error [16] happens:",
-                      fontSize = 12.sp,
-                      fontWeight = FontWeight.Bold,
-                      color = MaterialTheme.colorScheme.onSurface
-                    )
-                    Spacer(modifier = Modifier.height(4.dp))
-                    Text(
-                      text = "• Google Play requires your account on the device.\n• In Firebase Console (order-tracking-ec763), register this Debug SHA-1 for package com.ordercom:",
-                      fontSize = 11.sp,
-                      color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                    Spacer(modifier = Modifier.height(8.dp))
-                    Box(
-                      modifier = Modifier
-                        .fillMaxWidth()
-                        .clip(RoundedCornerShape(8.dp))
-                        .background(MaterialTheme.colorScheme.surface)
-                        .padding(8.dp)
-                    ) {
-                      Text(
-                        text = "BD:91:4A:89:15:4C:7E:39:E7:16:41:43:28:30:37:E7:A8:0D:4F:93",
-                        fontSize = 10.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = themeColors.primary
-                      )
-                    }
                   }
                 }
               }

@@ -10,7 +10,7 @@
 ### Security Verification
 * **APK SHA-256 Checksum:**
   ```
-  fc0689675a1a400a76dc6a90d73c5d2cb48382b63685115959cce22bf016453a
+  02d83305126c45908544100f84570783bcb3be64a76180b402048eee1c1dd2b0
   ```
 * **Signing Certificate SHA-256 Fingerprint:**
   ```
