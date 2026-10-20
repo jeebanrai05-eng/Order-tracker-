@@ -10,13 +10,13 @@ on:
   workflow_dispatch:
     inputs:
       tag_name:
-        description: 'Release Tag (leave empty to auto-detect e.g. v1.0.2)'
+        description: 'Release Tag (leave empty to auto-detect e.g. v1.0.3)'
         required: false
-        default: 'v1.0.2'
+        default: 'v1.0.3'
       release_notes:
         description: 'Release Notes for this build'
         required: false
-        default: 'New features: Animated filter chips, Milestone progress card, smooth transitions, and self-update.'
+        default: 'Release v1.0.3: Google Sign-In & Cloud Sync auto-initialization, Live Shift Net Balance preview, What\'s New card, and UI polish.'
 
 permissions:
   contents: write

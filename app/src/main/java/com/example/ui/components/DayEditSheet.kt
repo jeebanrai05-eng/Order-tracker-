@@ -50,8 +50,11 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import com.example.data.OrderDayEntity
 import com.example.ui.theme.CyanPrimary
+import com.example.ui.theme.ProfitGreen
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -245,7 +248,52 @@ fun DayEditSheet(
         }
       }
 
-      Spacer(modifier = Modifier.height(24.dp))
+      Spacer(modifier = Modifier.height(16.dp))
+
+      val currentOrdersCount = ordersText.toIntOrNull() ?: 0
+      val currentTipAmount = tipText.toDoubleOrNull() ?: 0.0
+      val currentGasAmount = gasText.toDoubleOrNull() ?: 0.0
+      val dayNetTipsGas = currentTipAmount - currentGasAmount
+
+      // Live Shift Net Balance Card
+      Card(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(14.dp),
+        colors = CardDefaults.cardColors(
+          containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
+        )
+      ) {
+        Row(
+          modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 14.dp, vertical = 10.dp),
+          horizontalArrangement = Arrangement.SpaceBetween,
+          verticalAlignment = Alignment.CenterVertically
+        ) {
+          Column {
+            Text(
+              text = "Shift Net Balance (Tips - Gas)",
+              fontSize = 12.sp,
+              color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+            Text(
+              text = "$currentOrdersCount Orders entered",
+              fontSize = 11.sp,
+              fontWeight = FontWeight.SemiBold,
+              color = CyanPrimary
+            )
+          }
+
+          Text(
+            text = "${if (dayNetTipsGas >= 0) "+" else ""}${String.format("%.3f", dayNetTipsGas)} $currency",
+            fontSize = 15.sp,
+            fontWeight = FontWeight.ExtraBold,
+            color = if (dayNetTipsGas >= 0) ProfitGreen else Color(0xFFFF5252)
+          )
+        }
+      }
+
+      Spacer(modifier = Modifier.height(20.dp))
 
       // Action buttons
       Row(

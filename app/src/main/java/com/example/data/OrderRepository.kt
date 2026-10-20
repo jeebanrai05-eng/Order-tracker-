@@ -11,11 +11,12 @@ import kotlinx.coroutines.withContext
 class OrderRepository(
   private val orderDao: OrderDao
 ) {
-  private val firestore: FirebaseFirestore? = try {
-    FirebaseFirestore.getInstance()
-  } catch (e: Exception) {
-    null
-  }
+  private val firestore: FirebaseFirestore?
+    get() = try {
+      FirebaseFirestore.getInstance()
+    } catch (e: Exception) {
+      null
+    }
 
   fun getOrdersForMonth(year: Int, month: Int): Flow<List<OrderDayEntity>> {
     return orderDao.getOrdersForMonth(year, month)
@@ -24,8 +25,9 @@ class OrderRepository(
   suspend fun saveOrderDay(order: OrderDayEntity) = withContext(Dispatchers.IO) {
     orderDao.insertOrUpdate(order)
     // If logged in, optionally sync to firestore asynchronously
-    val user = FirebaseAuth.getInstance().currentUser
-    if (user != null && firestore != null) {
+    val user = try { FirebaseAuth.getInstance().currentUser } catch (e: Exception) { null }
+    val fs = firestore
+    if (user != null && fs != null) {
       try {
         val map = hashMapOf(
           "id" to order.id,
@@ -38,7 +40,7 @@ class OrderRepository(
           "notes" to order.notes,
           "updatedAt" to order.updatedAt
         )
-        firestore.collection("users")
+        fs.collection("users")
           .document(user.uid)
           .collection("orders")
           .document(order.id)

@@ -1,11 +1,14 @@
 package com.example.data
 
 import android.content.Context
+import android.util.Log
 import androidx.credentials.CredentialManager
 import androidx.credentials.CustomCredential
 import androidx.credentials.GetCredentialRequest
 import com.google.android.libraries.identity.googleid.GetGoogleIdOption
 import com.google.android.libraries.identity.googleid.GoogleIdTokenCredential
+import com.google.firebase.FirebaseApp
+import com.google.firebase.FirebaseOptions
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
 import com.google.firebase.auth.GoogleAuthProvider
@@ -20,24 +23,43 @@ sealed class AuthUiState {
 }
 
 class AuthRepository {
-  private val auth: FirebaseAuth? = try {
-    FirebaseAuth.getInstance()
-  } catch (e: Exception) {
-    null
+
+  fun getFirebaseAuth(context: Context? = null): FirebaseAuth? {
+    try {
+      return FirebaseAuth.getInstance()
+    } catch (e: Exception) {
+      Log.w("AuthRepository", "Default FirebaseApp not found, initializing programmatically", e)
+      try {
+        if (context != null && FirebaseApp.getApps(context).isEmpty()) {
+          val options = FirebaseOptions.Builder()
+            .setApplicationId("1:508672273546:android:16dd365c30905ea5c05173")
+            .setApiKey("AIzaSyAEFKvjHCP0tggz03iv4ZxViiEXi4zbERA")
+            .setProjectId("order-tracking-ec763")
+            .setDatabaseUrl("https://order-tracking-ec763-default-rtdb.firebaseio.com")
+            .setStorageBucket("order-tracking-ec763.firebasestorage.app")
+            .build()
+          FirebaseApp.initializeApp(context.applicationContext, options)
+          return FirebaseAuth.getInstance()
+        }
+      } catch (initErr: Exception) {
+        Log.e("AuthRepository", "Programmatic FirebaseApp initialization failed", initErr)
+      }
+      return null
+    }
   }
 
   private val _authState = MutableStateFlow<AuthUiState>(
-    auth?.currentUser?.let { user ->
+    getFirebaseAuth()?.currentUser?.let { user ->
       AuthUiState.LoggedIn(user.email ?: "User", user.uid, user.displayName ?: "")
     } ?: AuthUiState.LoggedOut
   )
   val authState: StateFlow<AuthUiState> = _authState.asStateFlow()
 
   val currentUser: FirebaseUser?
-    get() = auth?.currentUser
+    get() = getFirebaseAuth()?.currentUser
 
   suspend fun login(email: String, password: String): Result<String> {
-    val firebaseAuth = auth ?: return Result.failure(Exception("Firebase Auth is not available"))
+    val firebaseAuth = getFirebaseAuth() ?: return Result.failure(Exception("Cloud Auth service initializing. Please retry in a moment."))
     return try {
       val result = firebaseAuth.signInWithEmailAndPassword(email.trim(), password).await()
       val user = result.user
@@ -50,7 +72,7 @@ class AuthRepository {
   }
 
   suspend fun signup(email: String, password: String): Result<String> {
-    val firebaseAuth = auth ?: return Result.failure(Exception("Firebase Auth is not available"))
+    val firebaseAuth = getFirebaseAuth() ?: return Result.failure(Exception("Cloud Auth service initializing. Please retry in a moment."))
     return try {
       val result = firebaseAuth.createUserWithEmailAndPassword(email.trim(), password).await()
       val user = result.user
@@ -63,13 +85,11 @@ class AuthRepository {
   }
 
   suspend fun signInWithGoogle(context: Context): Result<String> {
-    val firebaseAuth = auth ?: return Result.failure(Exception("Firebase Auth is not available"))
+    val firebaseAuth = getFirebaseAuth(context) ?: return Result.failure(Exception("Cloud Auth service initializing. Please retry in a moment."))
     return try {
       val credentialManager = CredentialManager.create(context)
       val clientId = "508672273546-mb8s1o2e01q4hjbf4icuo0a39h34q8m6.apps.googleusercontent.com"
 
-      // Use GetGoogleIdOption with filterByAuthorizedAccounts = false to display all Google accounts on device
-      // and avoid the "[16] Account reauth failed" error caused by filtering for non-existent authorized sessions!
       val googleIdOption = GetGoogleIdOption.Builder()
         .setFilterByAuthorizedAccounts(false)
         .setServerClientId(clientId)
@@ -105,7 +125,7 @@ class AuthRepository {
       if (isNoCredentialOrReauth) {
         Result.failure(
           Exception(
-            "No Google Account on this device or SHA-1 pending in Firebase. Please use 1-Tap Driver Login or Email below!",
+            "Google Sign-In canceled or no Google Account selected. You can also log in instantly with Email!",
             e
           )
         )
@@ -120,7 +140,7 @@ class AuthRepository {
   }
 
   suspend fun sendPasswordReset(email: String): Result<Unit> {
-    val firebaseAuth = auth ?: return Result.failure(Exception("Firebase Auth is not available"))
+    val firebaseAuth = getFirebaseAuth() ?: return Result.failure(Exception("Cloud Auth service initializing. Please retry in a moment."))
     return try {
       firebaseAuth.sendPasswordResetEmail(email.trim()).await()
       Result.success(Unit)
@@ -130,7 +150,7 @@ class AuthRepository {
   }
 
   fun logout() {
-    auth?.signOut()
+    getFirebaseAuth()?.signOut()
     _authState.value = AuthUiState.LoggedOut
   }
 }

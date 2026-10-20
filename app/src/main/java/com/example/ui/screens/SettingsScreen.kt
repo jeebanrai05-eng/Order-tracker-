@@ -985,24 +985,39 @@ fun SettingsScreen(
             }
           }
 
-          Spacer(modifier = Modifier.height(12.dp))
+          Spacer(modifier = Modifier.height(14.dp))
 
-          // Security Features Badge
-          Row(
-            modifier = Modifier
-              .fillMaxWidth()
-              .clip(RoundedCornerShape(10.dp))
-              .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.35f))
-              .padding(horizontal = 10.dp, vertical = 8.dp),
-            verticalAlignment = Alignment.CenterVertically
-          ) {
-            Text(text = "🛡️", fontSize = 14.sp)
-            Spacer(modifier = Modifier.width(8.dp))
-            Text(
-              text = "SHA-256 cryptographic checksum & signing certificate verified prior to installation.",
-              fontSize = 11.sp,
-              color = MaterialTheme.colorScheme.onSurfaceVariant
+          // What's New in v1.0.3 Section Card
+          Card(
+            modifier = Modifier.fillMaxWidth(),
+            shape = RoundedCornerShape(14.dp),
+            colors = CardDefaults.cardColors(
+              containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.45f)
             )
+          ) {
+            Column(
+              modifier = Modifier
+                .fillMaxWidth()
+                .padding(14.dp)
+            ) {
+              Row(verticalAlignment = Alignment.CenterVertically) {
+                Text(text = "✨", fontSize = 16.sp)
+                Spacer(modifier = Modifier.width(6.dp))
+                Text(
+                  text = "What's New in v1.0.3",
+                  fontSize = 13.sp,
+                  fontWeight = FontWeight.Bold,
+                  color = currentThemeColors.primary
+                )
+              }
+              Spacer(modifier = Modifier.height(8.dp))
+              Text(
+                text = "• Google Sign-In & Cloud Sync: Auto-initialization with restored connectivity\n• Live Shift Calculator: Real-time net balance preview before saving entries\n• Enhanced Animated Milestone Card & Day Filter Chips\n• Cleaner professional UI and instant in-app update engine",
+                fontSize = 11.sp,
+                lineHeight = 16.sp,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+              )
+            }
           }
         }
       }

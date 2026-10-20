@@ -1,12 +1,12 @@
 {
-  "versionCode": 2,
-  "versionName": "1.0.2",
+  "versionCode": 3,
+  "versionName": "1.0.3",
   "packageName": "com.ordercom",
-  "downloadUrl": "https://github.com/jeebanrai05-eng/Order-tracker-/releases/download/v1.0.2/app-release.apk",
-  "fileSize": 20566563,
-  "sha256": "0a2278eed3fcf7969f387ebe5c5eb8771e097e9ebbabae93a5ec6fcc3d6feb9a",
+  "downloadUrl": "https://github.com/jeebanrai05-eng/Order-tracker-/releases/download/v1.0.3/app-release.apk",
+  "fileSize": 20570047,
+  "sha256": "fc0689675a1a400a76dc6a90d73c5d2cb48382b63685115959cce22bf016453a",
   "certSha256": "2523424FDCA4A6EFAF07756779949EF531C579219488036E19426ADB5DFA9B95",
-  "releaseNotes": "New Release v1.0.2: Animated filter chips, Milestone progress card, smooth transitions, and seamless self-update.",
-  "releaseDate": "2026-10-19",
+  "releaseNotes": "Release v1.0.3: Google Sign-In & Cloud Sync auto-initialization, Live Shift Net Balance preview, What's New card, and UI polish.",
+  "releaseDate": "2026-10-20",
   "isMandatory": false
 }
