@@ -4,13 +4,13 @@
 * **Version Name:** 1.0.4
 * **Version Code:** 4
 * **Package Name:** com.ordercom
-* **Release Date:** 2026-10-20
+* **Release Date:** 2026-10-21
 * **File Size:** 19.62 MB (20570047 bytes)
 
 ### Security Verification
 * **APK SHA-256 Checksum:**
   ```
-  c3c8cecf6f3c3101760c5ba5841dfbb0cd204ea888421aa42c7dd8a3dc985599
+  73ad1a3d1a559c4c9f85555b53a59791962ba022dfcfeff13d385dac6f3f0cf7
   ```
 * **Signing Certificate SHA-256 Fingerprint:**
   ```
@@ -18,7 +18,7 @@
   ```
 
 ### Changelog:
-Release v1.0.4: Google Sign-In setup instructions, SHA-1 registration guidance, and self-update.
+Release v1.0.4: Modern Update Center with animated progress, Firestore cloud fallback, and Google Sign-In setup.
 
 ---
 *Verified and generated with automated cryptographic self-update manifest.*

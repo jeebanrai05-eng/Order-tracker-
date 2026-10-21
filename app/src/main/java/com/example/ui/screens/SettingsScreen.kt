@@ -959,7 +959,7 @@ fun SettingsScreen(
 
             Button(
               onClick = {
-                viewModel.checkForUpdates()
+                viewModel.openUpdateCenter()
               },
               enabled = !isCheckingUpdate,
               shape = RoundedCornerShape(12.dp),
@@ -979,7 +979,7 @@ fun SettingsScreen(
                     modifier = Modifier.size(16.dp)
                   )
                   Spacer(modifier = Modifier.width(6.dp))
-                  Text("Check", fontWeight = FontWeight.Bold, fontSize = 12.sp)
+                  Text("Update Center", fontWeight = FontWeight.Bold, fontSize = 12.sp)
                 }
               }
             }

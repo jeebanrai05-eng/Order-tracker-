@@ -99,6 +99,19 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
   private val _isCheckingUpdate = MutableStateFlow(false)
   val isCheckingUpdate: StateFlow<Boolean> = _isCheckingUpdate.asStateFlow()
 
+  private val _showUpdateCenterModal = MutableStateFlow(false)
+  val showUpdateCenterModal: StateFlow<Boolean> = _showUpdateCenterModal.asStateFlow()
+
+  fun openUpdateCenter() {
+    _showUpdateCenterModal.value = true
+    checkForUpdates()
+  }
+
+  fun dismissUpdateCenter() {
+    _showUpdateCenterModal.value = false
+    _downloadStatus.value = DownloadStatus.Idle
+  }
+
   init {
     viewModelScope.launch {
       kotlinx.coroutines.delay(2500)
@@ -417,11 +430,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
           _snackbarMessage.emit("App is up to date (${result.currentVersionName})")
         }
         is UpdateCheckResult.Error -> {
-          if (result.message.contains("404") || result.message.contains("No newer") || result.message.contains("private")) {
-            _snackbarMessage.emit("App is up to date (${updateManager.currentVersionName})")
-          } else {
-            _snackbarMessage.emit("Update check: ${result.message}")
-          }
+          _snackbarMessage.emit(result.message)
         }
         is UpdateCheckResult.UpdateAvailable -> {
           _snackbarMessage.emit("New update found: ${result.manifest.versionName}!")
@@ -445,5 +454,6 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
   fun dismissUpdateDialog() {
     _updateCheckResult.value = null
     _downloadStatus.value = DownloadStatus.Idle
+    _showUpdateCenterModal.value = false
   }
 }

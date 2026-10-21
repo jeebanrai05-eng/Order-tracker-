@@ -8,10 +8,12 @@ import android.os.Build
 import android.provider.Settings
 import androidx.core.content.FileProvider
 import com.example.BuildConfig
+import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
+import kotlinx.coroutines.tasks.await
 import kotlinx.coroutines.withContext
 import okhttp3.OkHttpClient
 import okhttp3.Request
@@ -32,19 +34,16 @@ class UpdateManager(private val context: Context) {
     .followRedirects(true)
     .build()
 
-  /**
-   * Default repository URL where version.json is expected.
-   * Can be overridden by user in settings.
-   */
   companion object {
     const val DEFAULT_MANIFEST_URL = "https://github.com/jeebanrai05-eng/Order-tracker-/releases/latest/download/version.json"
     val CANDIDATE_URLS = listOf(
       "https://github.com/jeebanrai05-eng/Order-tracker-/releases/latest/download/version.json",
-      "https://github.com/jeebanrai05_eng/Order-tracker-/releases/latest/download/version.json",
+      "https://github.com/jeebanrai05-eng/Order-tracker-/releases/download/v1.0.4/version.json",
       "https://raw.githubusercontent.com/jeebanrai05-eng/Order-tracker-/main/version.json",
-      "https://raw.githubusercontent.com/jeebanrai05_eng/Order-tracker-/main/version.json",
-      "https://github.com/jeebanrai05-eng/Order-tracker-/releases/download/v1.0.2/version.json",
-      "https://github.com/jeebanrai05_eng/Order-tracker-/releases/download/v1.0.2/version.json"
+      "https://raw.githubusercontent.com/jeebanrai05-eng/Order-tracker-/master/version.json",
+      "https://github.com/jeebanrai05-eng/Order-tracker-/releases/download/v1.0.3/version.json",
+      "https://github.com/jeebanrai05_eng/Order-tracker-/releases/latest/download/version.json",
+      "https://raw.githubusercontent.com/jeebanrai05_eng/Order-tracker-/main/version.json"
     )
   }
 
@@ -73,6 +72,8 @@ class UpdateManager(private val context: Context) {
       try {
         val request = Request.Builder()
           .url(url)
+          .header("Cache-Control", "no-cache, no-store, must-revalidate")
+          .header("Pragma", "no-cache")
           .header("User-Agent", "OrderTracker-Android/${BuildConfig.VERSION_NAME}")
           .build()
 
@@ -85,35 +86,35 @@ class UpdateManager(private val context: Context) {
         val bodyString = response.body?.string() ?: continue
         val json = JSONObject(bodyString)
 
-      val remotePackageName = json.optString("packageName", "")
-      if (remotePackageName.isNotBlank() && remotePackageName != context.packageName) {
-        return@withContext UpdateCheckResult.Error(
-          "Security rejection: Manifest package ($remotePackageName) does not match app ($packageName)"
+        val remotePackageName = json.optString("packageName", "")
+        if (remotePackageName.isNotBlank() && remotePackageName != context.packageName) {
+          return@withContext UpdateCheckResult.Error(
+            "Security rejection: Manifest package ($remotePackageName) does not match app ($packageName)"
+          )
+        }
+
+        val remoteVersionCode = json.getInt("versionCode")
+        val remoteVersionName = json.optString("versionName", "v$remoteVersionCode")
+        val downloadUrl = json.getString("downloadUrl")
+        val fileSize = json.optLong("fileSize", 0L)
+        val sha256 = json.getString("sha256")
+        val certSha256 = json.optString("certSha256").takeIf { it.isNotBlank() }
+        val releaseNotes = json.optString("releaseNotes", "Bug fixes and improvements")
+        val releaseDate = json.optString("releaseDate", "")
+        val isMandatory = json.optBoolean("isMandatory", false)
+
+        val manifest = UpdateManifest(
+          versionCode = remoteVersionCode,
+          versionName = remoteVersionName,
+          packageName = remotePackageName.ifBlank { context.packageName },
+          downloadUrl = downloadUrl,
+          fileSize = fileSize,
+          sha256 = sha256,
+          certSha256 = certSha256,
+          releaseNotes = releaseNotes,
+          releaseDate = releaseDate,
+          isMandatory = isMandatory
         )
-      }
-
-      val remoteVersionCode = json.getInt("versionCode")
-      val remoteVersionName = json.optString("versionName", "v$remoteVersionCode")
-      val downloadUrl = json.getString("downloadUrl")
-      val fileSize = json.optLong("fileSize", 0L)
-      val sha256 = json.getString("sha256")
-      val certSha256 = json.optString("certSha256").takeIf { it.isNotBlank() }
-      val releaseNotes = json.optString("releaseNotes", "Bug fixes and improvements")
-      val releaseDate = json.optString("releaseDate", "")
-      val isMandatory = json.optBoolean("isMandatory", false)
-
-      val manifest = UpdateManifest(
-        versionCode = remoteVersionCode,
-        versionName = remoteVersionName,
-        packageName = remotePackageName.ifBlank { context.packageName },
-        downloadUrl = downloadUrl,
-        fileSize = fileSize,
-        sha256 = sha256,
-        certSha256 = certSha256,
-        releaseNotes = releaseNotes,
-        releaseDate = releaseDate,
-        isMandatory = isMandatory
-      )
 
         return@withContext if (remoteVersionCode > currentVersionCode) {
           UpdateCheckResult.UpdateAvailable(
@@ -131,8 +132,47 @@ class UpdateManager(private val context: Context) {
         lastErrorMessage = "Failed to check for updates: ${e.localizedMessage ?: e.message}"
       }
     }
+
+    // If HTTP checks failed, check Firestore cloud manifest fallback
+    try {
+      val firestore = FirebaseFirestore.getInstance()
+      val snapshot = firestore.collection("app_updates").document("latest").get().await()
+      if (snapshot.exists()) {
+        val remoteVersionCode = snapshot.getLong("versionCode")?.toInt()
+        val remoteVersionName = snapshot.getString("versionName")
+        val downloadUrl = snapshot.getString("downloadUrl")
+        val sha256 = snapshot.getString("sha256")
+        if (remoteVersionCode != null && remoteVersionName != null && downloadUrl != null && sha256 != null) {
+          val manifest = UpdateManifest(
+            versionCode = remoteVersionCode,
+            versionName = remoteVersionName,
+            packageName = snapshot.getString("packageName") ?: context.packageName,
+            downloadUrl = downloadUrl,
+            fileSize = snapshot.getLong("fileSize") ?: 0L,
+            sha256 = sha256,
+            certSha256 = snapshot.getString("certSha256"),
+            releaseNotes = snapshot.getString("releaseNotes") ?: "Bug fixes and improvements",
+            releaseDate = snapshot.getString("releaseDate") ?: "",
+            isMandatory = snapshot.getBoolean("isMandatory") ?: false
+          )
+          return@withContext if (remoteVersionCode > currentVersionCode) {
+            UpdateCheckResult.UpdateAvailable(
+              manifest = manifest,
+              currentVersionCode = currentVersionCode,
+              currentVersionName = currentVersionName
+            )
+          } else {
+            UpdateCheckResult.UpToDate(
+              currentVersionCode = currentVersionCode,
+              currentVersionName = currentVersionName
+            )
+          }
+        }
+      }
+    } catch (_: Exception) {}
+
     val friendlyError = if (lastErrorMessage.contains("404")) {
-      "No newer release found on GitHub (Repository may be private or release in progress)"
+      "GitHub repository is currently Private. In-app downloads require repository visibility to be Public (GitHub Settings ➔ Danger Zone ➔ Make Public)."
     } else {
       lastErrorMessage
     }
@@ -151,15 +191,15 @@ class UpdateManager(private val context: Context) {
     if (!updatesDir.exists()) {
       updatesDir.mkdirs()
     }
-
-    // Clean old update files to prevent disk bloating
-    updatesDir.listFiles()?.forEach { it.delete() }
-
     val targetFile = File(updatesDir, "OrderTracker_v${manifest.versionCode}.apk")
+    if (targetFile.exists()) {
+      targetFile.delete()
+    }
 
     try {
       val request = Request.Builder()
         .url(manifest.downloadUrl)
+        .header("Cache-Control", "no-cache, no-store, must-revalidate")
         .header("User-Agent", "OrderTracker-Android/${BuildConfig.VERSION_NAME}")
         .build()
 
@@ -170,7 +210,7 @@ class UpdateManager(private val context: Context) {
       }
 
       val body = response.body ?: run {
-        emit(DownloadStatus.Failed("Download failed: Empty response body"))
+        emit(DownloadStatus.Failed("Download failed: Empty server response"))
         return@flow
       }
 
@@ -178,24 +218,24 @@ class UpdateManager(private val context: Context) {
       val inputStream: InputStream = body.byteStream()
       val outputStream = FileOutputStream(targetFile)
 
-      val buffer = ByteArray(8192)
+      val buffer = ByteArray(16 * 1024)
       var bytesRead: Int
-      var downloadedBytes = 0L
-      var lastReportedPercent = 0
-
-      val digest = MessageDigest.getInstance("SHA-256")
+      var downloadedBytes: Long = 0
+      var lastReportedPercent = -1
 
       while (inputStream.read(buffer).also { bytesRead = it } != -1) {
         outputStream.write(buffer, 0, bytesRead)
-        digest.update(buffer, 0, bytesRead)
         downloadedBytes += bytesRead
 
-        if (totalLength > 0) {
-          val percent = ((downloadedBytes * 100) / totalLength).toInt().coerceIn(0, 100)
-          if (percent != lastReportedPercent) {
-            lastReportedPercent = percent
-            emit(DownloadStatus.Downloading(percent, downloadedBytes, totalLength))
-          }
+        val percent = if (totalLength > 0) {
+          ((downloadedBytes * 100) / totalLength).toInt().coerceIn(0, 100)
+        } else {
+          50
+        }
+
+        if (percent != lastReportedPercent) {
+          lastReportedPercent = percent
+          emit(DownloadStatus.Downloading(percent, downloadedBytes, totalLength))
         }
       }
 
@@ -203,41 +243,31 @@ class UpdateManager(private val context: Context) {
       outputStream.close()
       inputStream.close()
 
-      // 1. Verify Checksum
-      emit(DownloadStatus.Verifying("Verifying cryptographic SHA-256 checksum..."))
-      val computedHashBytes = digest.digest()
-      val computedSha256 = computedHashBytes.joinToString("") { "%02x".format(it) }
+      emit(DownloadStatus.Verifying("Verifying package integrity and signatures..."))
 
-      if (!computedSha256.equals(manifest.sha256.trim(), ignoreCase = true)) {
+      // 1. Verify SHA-256 Checksum
+      val computedSha256 = calculateFileSha256(targetFile)
+      val expectedSha256 = manifest.sha256.trim()
+      if (!computedSha256.equals(expectedSha256, ignoreCase = true)) {
         targetFile.delete()
         emit(
           DownloadStatus.Failed(
-            "Security verification failed: APK SHA-256 mismatch!\nExpected: ${manifest.sha256}\nComputed: $computedSha256"
+            "SHA-256 mismatch! Expected: ${expectedSha256.take(12)}... Got: ${computedSha256.take(12)}..."
           )
         )
         return@flow
       }
 
-      // 2. Verify APK Package Info and Signing Certificate
-      emit(DownloadStatus.Verifying("Verifying APK package integrity and signature..."))
+      // 2. Verify Android Package Archive and Version
       val pm = context.packageManager
-      val archiveInfo = try {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-          pm.getPackageArchiveInfo(
-            targetFile.absolutePath,
-            PackageManager.PackageInfoFlags.of(PackageManager.GET_SIGNING_CERTIFICATES.toLong())
-          )
-        } else {
-          @Suppress("DEPRECATION")
-          pm.getPackageArchiveInfo(targetFile.absolutePath, PackageManager.GET_SIGNATURES)
-        }
-      } catch (t: Throwable) {
-        null
-      }
+      val archiveInfo = pm.getPackageArchiveInfo(
+        targetFile.absolutePath,
+        PackageManager.GET_ACTIVITIES or PackageManager.GET_SIGNATURES
+      )
 
       if (archiveInfo == null) {
         targetFile.delete()
-        emit(DownloadStatus.Failed("Invalid APK: Unable to read package metadata from downloaded file"))
+        emit(DownloadStatus.Failed("Invalid APK package: unable to read archive metadata"))
         return@flow
       }
 
@@ -245,7 +275,7 @@ class UpdateManager(private val context: Context) {
         targetFile.delete()
         emit(
           DownloadStatus.Failed(
-            "Security rejection: APK package '${archiveInfo.packageName}' does not match installed app '${context.packageName}'"
+            "Security rejection: APK package (${archiveInfo.packageName}) does not match current app (${context.packageName})"
           )
         )
         return@flow
@@ -290,17 +320,14 @@ class UpdateManager(private val context: Context) {
       )
       emit(DownloadStatus.ReadyToInstall(apkUri, targetFile.absolutePath))
 
-    } catch (e: Throwable) {
-      if (targetFile.exists()) {
-        targetFile.delete()
-      }
-      emit(DownloadStatus.Failed("Download error: ${e.localizedMessage ?: e.message}"))
+    } catch (e: Exception) {
+      targetFile.delete()
+      emit(DownloadStatus.Failed("Update error: ${e.localizedMessage ?: e.message}"))
     }
   }.flowOn(Dispatchers.IO)
 
   /**
    * Prompts the user to install the downloaded APK.
-   * If on Android 8.0+ and permission is not granted, requests permission via system settings.
    */
   fun promptInstallApk(apkUri: Uri) {
     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
@@ -351,23 +378,17 @@ class UpdateManager(private val context: Context) {
   }
 
   /**
-   * Gets current app's installed signing certificate SHA-256.
+   * Calculates SHA-256 hash of a local file.
    */
-  fun getCurrentAppCertificateSha256(): String? {
-    return try {
-      val pm = context.packageManager
-      val packageInfo = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-        pm.getPackageInfo(
-          context.packageName,
-          PackageManager.PackageInfoFlags.of(PackageManager.GET_SIGNING_CERTIFICATES.toLong())
-        )
-      } else {
-        @Suppress("DEPRECATION")
-        pm.getPackageInfo(context.packageName, PackageManager.GET_SIGNATURES)
+  private fun calculateFileSha256(file: File): String {
+    val md = MessageDigest.getInstance("SHA-256")
+    val buffer = ByteArray(8 * 1024)
+    file.inputStream().use { input ->
+      var bytesRead: Int
+      while (input.read(buffer).also { bytesRead = it } != -1) {
+        md.update(buffer, 0, bytesRead)
       }
-      extractApkCertificateSha256(packageInfo)
-    } catch (e: Exception) {
-      null
     }
+    return md.digest().joinToString("") { "%02X".format(it) }
   }
 }

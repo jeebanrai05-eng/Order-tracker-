@@ -143,16 +143,20 @@ fun OrderTrackerApp(
   // Self-Update Modal Dialog with progress and cryptographic verification
   val updateCheckResult by viewModel.updateCheckResult.collectAsState()
   val downloadStatus by viewModel.downloadStatus.collectAsState()
+  val isCheckingUpdate by viewModel.isCheckingUpdate.collectAsState()
+  val showUpdateCenterModal by viewModel.showUpdateCenterModal.collectAsState()
 
-  (updateCheckResult as? com.example.data.update.UpdateCheckResult.UpdateAvailable)?.let { update ->
+  if (showUpdateCenterModal || updateCheckResult is com.example.data.update.UpdateCheckResult.UpdateAvailable) {
     com.example.ui.components.UpdateDialog(
-      manifest = update.manifest,
-      currentVersionName = update.currentVersionName,
-      currentVersionCode = update.currentVersionCode,
+      isChecking = isCheckingUpdate,
+      checkResult = updateCheckResult,
+      currentVersionName = viewModel.updateManager.currentVersionName,
+      currentVersionCode = viewModel.updateManager.currentVersionCode,
       downloadStatus = downloadStatus,
-      onStartDownload = { viewModel.startDownloadUpdate(update.manifest) },
+      onCheckAgain = { viewModel.checkForUpdates() },
+      onStartDownload = { manifest -> viewModel.startDownloadUpdate(manifest) },
       onInstall = { uri -> viewModel.installDownloadedApk(uri) },
-      onDismiss = { viewModel.dismissUpdateDialog() }
+      onDismiss = { viewModel.dismissUpdateCenter() }
     )
   }
 
