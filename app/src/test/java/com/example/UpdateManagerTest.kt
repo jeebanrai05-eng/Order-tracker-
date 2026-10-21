@@ -144,6 +144,64 @@ class UpdateManagerTest {
   }
 
   @Test
+  fun `installed version newer than remote does not offer a downgrade`() = runBlocking {
+    val manifestJson = JSONObject().apply {
+      put("versionCode", 1) // older than current version (4)
+      put("versionName", "1.0.0")
+      put("packageName", context.packageName)
+      put("downloadUrl", url("/old.apk"))
+      put("fileSize", 500L)
+      put("sha256", "abc")
+    }.toString()
+
+    server.createContext("/downgrade.json") { exchange ->
+      val bytes = manifestJson.toByteArray()
+      exchange.responseHeaders.set("Content-Type", "application/json")
+      exchange.sendResponseHeaders(200, bytes.size.toLong())
+      exchange.responseBody.use { it.write(bytes) }
+    }
+
+    val result = updateManager.checkUpdate(url("/downgrade.json"))
+    assertTrue("Must not offer downgrade when installed is newer", result is UpdateCheckResult.UpToDate)
+  }
+
+  @Test
+  fun `invalid json returns Error with clear error message`() = runBlocking {
+    server.createContext("/invalid-json.json") { exchange ->
+      val bytes = "NOT VALID JSON".toByteArray()
+      exchange.sendResponseHeaders(200, bytes.size.toLong())
+      exchange.responseBody.use { it.write(bytes) }
+    }
+
+    val result = updateManager.checkUpdate(url("/invalid-json.json"))
+    assertTrue("Invalid JSON must return Error", result is UpdateCheckResult.Error)
+  }
+
+  @Test
+  fun `manifest with apkUrl field is parsed correctly without error`() = runBlocking {
+    val manifestJson = JSONObject().apply {
+      put("versionCode", 100)
+      put("versionName", "2.0.0")
+      put("packageName", context.packageName)
+      put("apkUrl", url("/v2.apk"))
+      put("fileSize", 500L)
+      put("sha256", "abc")
+    }.toString()
+
+    server.createContext("/apk-url-field.json") { exchange ->
+      val bytes = manifestJson.toByteArray()
+      exchange.responseHeaders.set("Content-Type", "application/json")
+      exchange.sendResponseHeaders(200, bytes.size.toLong())
+      exchange.responseBody.use { it.write(bytes) }
+    }
+
+    val result = updateManager.checkUpdate(url("/apk-url-field.json"))
+    assertTrue(result is UpdateCheckResult.UpdateAvailable)
+    val update = result as UpdateCheckResult.UpdateAvailable
+    assertEquals(url("/v2.apk"), update.manifest.downloadUrl)
+  }
+
+  @Test
   fun `downloadAndVerify fails securely when SHA-256 checksum mismatches`() = runBlocking {
     val testPayload = "Fake APK Content For Testing Checksum Failure".toByteArray()
     val expectedHash = "0000000000000000000000000000000000000000000000000000000000000000"

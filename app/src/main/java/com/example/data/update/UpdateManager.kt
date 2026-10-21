@@ -70,8 +70,10 @@ class UpdateManager(private val context: Context) {
 
     for (url in urlsToTry) {
       try {
+        val timestamp = System.currentTimeMillis()
+        val cacheBustedUrl = if (url.contains("?")) "$url&_t=$timestamp" else "$url?_t=$timestamp"
         val request = Request.Builder()
-          .url(url)
+          .url(cacheBustedUrl)
           .header("Cache-Control", "no-cache, no-store, must-revalidate")
           .header("Pragma", "no-cache")
           .header("User-Agent", "OrderTracker-Android/${BuildConfig.VERSION_NAME}")
@@ -95,7 +97,7 @@ class UpdateManager(private val context: Context) {
 
         val remoteVersionCode = json.getInt("versionCode")
         val remoteVersionName = json.optString("versionName", "v$remoteVersionCode")
-        val downloadUrl = json.getString("downloadUrl")
+        val downloadUrl = json.optString("downloadUrl", json.optString("apkUrl", ""))
         val fileSize = json.optLong("fileSize", 0L)
         val sha256 = json.getString("sha256")
         val certSha256 = json.optString("certSha256").takeIf { it.isNotBlank() }
