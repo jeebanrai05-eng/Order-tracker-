@@ -3,10 +3,10 @@
   "versionName": "1.0.4",
   "packageName": "com.ordercom",
   "downloadUrl": "https://github.com/jeebanrai05-eng/Order-tracker-/releases/download/v1.0.4/app-release.apk",
-  "fileSize": 20570047,
-  "sha256": "73ad1a3d1a559c4c9f85555b53a59791962ba022dfcfeff13d385dac6f3f0cf7",
+  "fileSize": 20566599,
+  "sha256": "fe9d4cb25470da3f4a97de275d50c8e60f3f7966389b7cc793bd623d009665ca",
   "certSha256": "2523424FDCA4A6EFAF07756779949EF531C579219488036E19426ADB5DFA9B95",
-  "releaseNotes": "Release v1.0.4: Modern Update Center with animated progress, Firestore cloud fallback, and Google Sign-In setup.",
+  "releaseNotes": "Release v1.0.4: Google Sign-In setup instructions, SHA-1 registration guidance, and self-update.",
   "releaseDate": "2026-10-21",
   "isMandatory": false
 }
