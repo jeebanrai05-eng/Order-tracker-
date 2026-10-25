@@ -112,7 +112,35 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     _downloadStatus.value = DownloadStatus.Idle
   }
 
+  private val _showThemeStudio = MutableStateFlow(false)
+  val showThemeStudio: StateFlow<Boolean> = _showThemeStudio.asStateFlow()
+
+  fun openThemeStudio() { _showThemeStudio.value = true }
+  fun closeThemeStudio() { _showThemeStudio.value = false }
+
+  fun updateDutyEndReminder(enabled: Boolean, hour: Int, minute: Int) {
+    preferencesManager.updateDutyEndReminder(enabled, hour, minute)
+    if (enabled) {
+      com.example.notification.DutyReminderManager.scheduleReminder(getApplication(), hour, minute)
+    } else {
+      com.example.notification.DutyReminderManager.cancelReminder(getApplication())
+    }
+  }
+
+  fun triggerTestDutyReminder() {
+    com.example.notification.DutyReminderManager.triggerTestNotification(getApplication())
+  }
+
   init {
+    val initialSettings = preferencesManager.loadSettings()
+    if (initialSettings.dutyEndReminderEnabled) {
+      com.example.notification.DutyReminderManager.scheduleReminder(
+        application,
+        initialSettings.dutyEndHour,
+        initialSettings.dutyEndMinute
+      )
+    }
+
     viewModelScope.launch {
       kotlinx.coroutines.delay(2500)
       try {

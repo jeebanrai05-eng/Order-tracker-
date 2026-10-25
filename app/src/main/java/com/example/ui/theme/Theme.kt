@@ -1,11 +1,16 @@
 package com.example.ui.theme
 
+import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.darkColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.getValue
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 
 @Composable
@@ -14,12 +19,36 @@ fun OrderTrackerTheme(
   themeName: String = "Neon Cyan",
   content: @Composable () -> Unit
 ) {
-  val palette = getThemePalette(themeName)
+  val targetPalette = getThemePalette(themeName)
+
+  // Silky Smooth Animated Color Interpolation across Theme Switches
+  val animatedPrimary by animateColorAsState(
+    targetValue = targetPalette.primary,
+    animationSpec = tween(durationMillis = 400, easing = FastOutSlowInEasing),
+    label = "animPrimary"
+  )
+  val animatedVariant by animateColorAsState(
+    targetValue = targetPalette.variant,
+    animationSpec = tween(durationMillis = 400, easing = FastOutSlowInEasing),
+    label = "animVariant"
+  )
+  val animatedAccent by animateColorAsState(
+    targetValue = targetPalette.accent,
+    animationSpec = tween(durationMillis = 400, easing = FastOutSlowInEasing),
+    label = "animAccent"
+  )
+
+  val animatedPalette = AppThemeColors(
+    primary = animatedPrimary,
+    variant = animatedVariant,
+    accent = animatedAccent,
+    gradient = Brush.horizontalGradient(listOf(animatedPrimary, animatedVariant))
+  )
 
   val colorScheme = if (darkTheme) {
     darkColorScheme(
-      primary = palette.primary,
-      secondary = palette.variant,
+      primary = animatedPrimary,
+      secondary = animatedVariant,
       tertiary = ProfitGreen,
       background = BackgroundDark,
       surface = SurfaceDark,
@@ -32,8 +61,8 @@ fun OrderTrackerTheme(
     )
   } else {
     lightColorScheme(
-      primary = palette.primary,
-      secondary = palette.variant,
+      primary = animatedPrimary,
+      secondary = animatedVariant,
       tertiary = ProfitGreen,
       background = BackgroundLight,
       surface = SurfaceLight,
@@ -46,7 +75,7 @@ fun OrderTrackerTheme(
     )
   }
 
-  CompositionLocalProvider(LocalAppThemeColors provides palette) {
+  CompositionLocalProvider(LocalAppThemeColors provides animatedPalette) {
     MaterialTheme(
       colorScheme = colorScheme,
       typography = Typography,

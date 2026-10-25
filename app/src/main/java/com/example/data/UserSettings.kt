@@ -9,6 +9,9 @@ data class UserSettings(
   val extraComm: Double = 0.8,
   val dailyEarningsGoal: Double = 25.0,
   val isDarkMode: Boolean = false,
-  val selectedTheme: String = "Neon Cyan", // "Neon Cyan", "Mid Purple", "Luxury Gold"
-  val autoMidnightReminder: Boolean = true
+  val selectedTheme: String = "Neon Cyan",
+  val autoMidnightReminder: Boolean = true,
+  val dutyEndReminderEnabled: Boolean = true,
+  val dutyEndHour: Int = 23, // 11 PM by default
+  val dutyEndMinute: Int = 0
 )

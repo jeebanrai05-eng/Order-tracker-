@@ -1,16 +1,16 @@
-## Order Tracker 1.0.4 (Build 4)
+## Order Tracker 1.0.5 (Build 5)
 
 ### Release Information
-* **Version Name:** 1.0.4
-* **Version Code:** 4
+* **Version Name:** 1.0.5
+* **Version Code:** 5
 * **Package Name:** com.ordercom
-* **Release Date:** 2026-10-21
-* **File Size:** 19.62 MB (20570047 bytes)
+* **Release Date:** 2026-10-25
+* **File Size:** 19.65 MB (20603063 bytes)
 
 ### Security Verification
 * **APK SHA-256 Checksum:**
   ```
-  73ad1a3d1a559c4c9f85555b53a59791962ba022dfcfeff13d385dac6f3f0cf7
+  7964c71aa23bd25e305fe99d6f1217571a5fbbbe1cae6767897d34e4773fd0e3
   ```
 * **Signing Certificate SHA-256 Fingerprint:**
   ```
@@ -18,7 +18,7 @@
   ```
 
 ### Changelog:
-Release v1.0.4: Modern Update Center with animated progress, Firestore cloud fallback, and Google Sign-In setup.
+Release v1.0.5: Duty End Reminder Notifications, 8 Ultra-Luxury Themes & Theme Studio, and Silky Smooth Animations.
 
 ---
 *Verified and generated with automated cryptographic self-update manifest.*

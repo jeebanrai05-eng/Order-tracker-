@@ -24,7 +24,10 @@ class PreferencesManager(context: Context) {
       dailyEarningsGoal = prefs.getFloat(KEY_DAILY_EARNINGS_GOAL, 25.0f).toDouble(),
       isDarkMode = prefs.getBoolean(KEY_IS_DARK_MODE, false),
       selectedTheme = prefs.getString(KEY_SELECTED_THEME, "Neon Cyan") ?: "Neon Cyan",
-      autoMidnightReminder = prefs.getBoolean(KEY_AUTO_MIDNIGHT_REMINDER, true)
+      autoMidnightReminder = prefs.getBoolean(KEY_AUTO_MIDNIGHT_REMINDER, true),
+      dutyEndReminderEnabled = prefs.getBoolean(KEY_DUTY_END_REMINDER_ENABLED, true),
+      dutyEndHour = prefs.getInt(KEY_DUTY_END_HOUR, 23),
+      dutyEndMinute = prefs.getInt(KEY_DUTY_END_MINUTE, 0)
     )
   }
 
@@ -41,6 +44,19 @@ class PreferencesManager(context: Context) {
   fun updateAutoMidnightReminder(enabled: Boolean) {
     prefs.edit().putBoolean(KEY_AUTO_MIDNIGHT_REMINDER, enabled).apply()
     _settingsFlow.value = _settingsFlow.value.copy(autoMidnightReminder = enabled)
+  }
+
+  fun updateDutyEndReminder(enabled: Boolean, hour: Int, minute: Int) {
+    prefs.edit()
+      .putBoolean(KEY_DUTY_END_REMINDER_ENABLED, enabled)
+      .putInt(KEY_DUTY_END_HOUR, hour)
+      .putInt(KEY_DUTY_END_MINUTE, minute)
+      .apply()
+    _settingsFlow.value = _settingsFlow.value.copy(
+      dutyEndReminderEnabled = enabled,
+      dutyEndHour = hour,
+      dutyEndMinute = minute
+    )
   }
 
   fun updateCurrency(currency: String) {
@@ -90,6 +106,9 @@ class PreferencesManager(context: Context) {
       .putBoolean(KEY_IS_DARK_MODE, settings.isDarkMode)
       .putString(KEY_SELECTED_THEME, settings.selectedTheme)
       .putBoolean(KEY_AUTO_MIDNIGHT_REMINDER, settings.autoMidnightReminder)
+      .putBoolean(KEY_DUTY_END_REMINDER_ENABLED, settings.dutyEndReminderEnabled)
+      .putInt(KEY_DUTY_END_HOUR, settings.dutyEndHour)
+      .putInt(KEY_DUTY_END_MINUTE, settings.dutyEndMinute)
       .apply()
     _settingsFlow.value = settings
   }
@@ -105,5 +124,8 @@ class PreferencesManager(context: Context) {
     private const val KEY_IS_DARK_MODE = "key_is_dark_mode"
     private const val KEY_SELECTED_THEME = "key_selected_theme"
     private const val KEY_AUTO_MIDNIGHT_REMINDER = "key_auto_midnight_reminder"
+    private const val KEY_DUTY_END_REMINDER_ENABLED = "key_duty_end_reminder_enabled"
+    private const val KEY_DUTY_END_HOUR = "key_duty_end_hour"
+    private const val KEY_DUTY_END_MINUTE = "key_duty_end_minute"
   }
 }

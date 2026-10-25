@@ -42,6 +42,7 @@ import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Switch
 import androidx.compose.material3.SwitchDefaults
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -71,6 +72,7 @@ import com.example.ui.theme.CyanAccent
 import com.example.ui.theme.CyanDark
 import com.example.ui.theme.CyanPrimary
 import com.example.ui.theme.GoldPrimary
+import com.example.ui.theme.JadePrimary
 import com.example.ui.theme.MaterialThemeColors
 import com.example.ui.theme.ProfitGreen
 import com.example.ui.theme.PurplePrimary
@@ -89,6 +91,8 @@ fun SettingsScreen(
   val settings by viewModel.settings.collectAsState()
   val isSyncing by viewModel.isSyncing.collectAsState()
   val currentThemeColors = MaterialThemeColors
+
+  var showDutyTimeDialog by remember { mutableStateOf(false) }
 
   var emailInput by remember { mutableStateOf("") }
   var passwordInput by remember { mutableStateOf("") }
@@ -752,27 +756,43 @@ fun SettingsScreen(
 
       Spacer(modifier = Modifier.height(24.dp))
 
-      // 4. Section: 🎨 Premium Themes matching Screenshot_20261018-004754.png
+      // 4. Section: 🎨 Luxury Themes
       Row(
         modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically
       ) {
-        Text(text = "🎨", fontSize = 16.sp)
-        Spacer(modifier = Modifier.width(6.dp))
-        Text(
-          text = "Premium Themes",
-          fontSize = 16.sp,
-          fontWeight = FontWeight.Bold,
-          color = MaterialTheme.colorScheme.onBackground
-        )
+        Row(verticalAlignment = Alignment.CenterVertically) {
+          Text(text = "🎨", fontSize = 16.sp)
+          Spacer(modifier = Modifier.width(6.dp))
+          Text(
+            text = "Luxury Themes",
+            fontSize = 16.sp,
+            fontWeight = FontWeight.Bold,
+            color = MaterialTheme.colorScheme.onBackground
+          )
+        }
+
+        OutlinedButton(
+          onClick = { viewModel.openThemeStudio() },
+          shape = RoundedCornerShape(12.dp),
+          modifier = Modifier.testTag("btn_open_theme_studio")
+        ) {
+          Text(
+            text = "Theme Studio (8 Themes)",
+            fontSize = 12.sp,
+            fontWeight = FontWeight.Bold,
+            color = currentThemeColors.primary
+          )
+        }
       }
 
       Spacer(modifier = Modifier.height(12.dp))
 
-      // 3 Theme selection cards in a row
+      // 4 quick theme selection cards in a row
       Row(
         modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.spacedBy(10.dp)
+        horizontalArrangement = Arrangement.spacedBy(8.dp)
       ) {
         ThemePillButton(
           name = "Neon Cyan",
@@ -783,25 +803,33 @@ fun SettingsScreen(
         )
 
         ThemePillButton(
-          name = "Mid Purple",
-          color = PurplePrimary,
-          isSelected = settings.selectedTheme == "Mid Purple",
-          onClick = { viewModel.updateTheme("Mid Purple") },
-          modifier = Modifier.weight(1f)
-        )
-
-        ThemePillButton(
           name = "Luxury Gold",
           color = GoldPrimary,
           isSelected = settings.selectedTheme == "Luxury Gold",
           onClick = { viewModel.updateTheme("Luxury Gold") },
           modifier = Modifier.weight(1f)
         )
+
+        ThemePillButton(
+          name = "Imperial Jade",
+          color = JadePrimary,
+          isSelected = settings.selectedTheme == "Imperial Jade",
+          onClick = { viewModel.updateTheme("Imperial Jade") },
+          modifier = Modifier.weight(1f)
+        )
+
+        ThemePillButton(
+          name = "More...",
+          color = currentThemeColors.primary,
+          isSelected = false,
+          onClick = { viewModel.openThemeStudio() },
+          modifier = Modifier.weight(1f)
+        )
       }
 
       Spacer(modifier = Modifier.height(24.dp))
 
-      // 5. Section: 🔔 Notifications & Data matching Screenshot_20261018-004754.png
+      // 5. Section: 🔔 Notifications & Duty Reminders
       Row(
         modifier = Modifier.fillMaxWidth(),
         verticalAlignment = Alignment.CenterVertically
@@ -809,11 +837,131 @@ fun SettingsScreen(
         Text(text = "🔔", fontSize = 16.sp)
         Spacer(modifier = Modifier.width(6.dp))
         Text(
-          text = "Notifications & Data",
+          text = "Notifications & Shift Reminders",
           fontSize = 16.sp,
           fontWeight = FontWeight.Bold,
           color = MaterialTheme.colorScheme.onBackground
         )
+      }
+
+      Spacer(modifier = Modifier.height(10.dp))
+
+      // Shift / Duty End Reminder Card (Requirement 1)
+      Card(
+        modifier = Modifier
+          .fillMaxWidth()
+          .testTag("card_duty_reminder"),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+        shape = RoundedCornerShape(20.dp),
+        border = CardDefaults.outlinedCardBorder()
+      ) {
+        Column(
+          modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 18.dp, vertical = 14.dp)
+        ) {
+          Row(
+            modifier = Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceBetween
+          ) {
+            Column(modifier = Modifier.weight(1f)) {
+              Text(
+                text = "Duty / Shift End Reminder",
+                fontSize = 16.sp,
+                fontWeight = FontWeight.Bold,
+                color = currentThemeColors.primary
+              )
+              Spacer(modifier = Modifier.height(2.dp))
+              Text(
+                text = "Pops up notification right at shift finish to log deliveries & tips",
+                fontSize = 12.sp,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+              )
+            }
+
+            Switch(
+              checked = settings.dutyEndReminderEnabled,
+              onCheckedChange = { isChecked ->
+                viewModel.updateDutyEndReminder(
+                  isChecked,
+                  settings.dutyEndHour,
+                  settings.dutyEndMinute
+                )
+              },
+              colors = SwitchDefaults.colors(
+                checkedThumbColor = Color.White,
+                checkedTrackColor = currentThemeColors.primary
+              ),
+              modifier = Modifier.testTag("switch_duty_reminder")
+            )
+          }
+
+          if (settings.dutyEndReminderEnabled) {
+            Spacer(modifier = Modifier.height(12.dp))
+
+            // Time Selector Row
+            Row(
+              modifier = Modifier
+                .fillMaxWidth()
+                .clip(RoundedCornerShape(12.dp))
+                .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.45f))
+                .clickable { showDutyTimeDialog = true }
+                .padding(horizontal = 14.dp, vertical = 10.dp),
+              horizontalArrangement = Arrangement.SpaceBetween,
+              verticalAlignment = Alignment.CenterVertically
+            ) {
+              Row(verticalAlignment = Alignment.CenterVertically) {
+                Text(text = "⏰", fontSize = 16.sp)
+                Spacer(modifier = Modifier.width(8.dp))
+                Text(
+                  text = "Shift Finish Time",
+                  fontSize = 13.sp,
+                  fontWeight = FontWeight.SemiBold,
+                  color = MaterialTheme.colorScheme.onSurface
+                )
+              }
+
+              val formattedHour = if (settings.dutyEndHour == 0) 12 else if (settings.dutyEndHour > 12) settings.dutyEndHour - 12 else settings.dutyEndHour
+              val amPm = if (settings.dutyEndHour >= 12) "PM" else "AM"
+              val formattedTime = String.format("%02d:%02d %s", formattedHour, settings.dutyEndMinute, amPm)
+
+              Surface(
+                shape = RoundedCornerShape(8.dp),
+                color = currentThemeColors.primary.copy(alpha = 0.16f)
+              ) {
+                Text(
+                  text = formattedTime,
+                  fontSize = 13.sp,
+                  fontWeight = FontWeight.Bold,
+                  color = currentThemeColors.primary,
+                  modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp)
+                )
+              }
+            }
+
+            Spacer(modifier = Modifier.height(10.dp))
+
+            // Test Notification Button
+            OutlinedButton(
+              onClick = {
+                viewModel.triggerTestDutyReminder()
+              },
+              shape = RoundedCornerShape(10.dp),
+              modifier = Modifier
+                .fillMaxWidth()
+                .height(38.dp)
+                .testTag("btn_test_duty_notification")
+            ) {
+              Text(
+                text = "🔔 Send Test Notification (1-Tap Entry)",
+                fontSize = 12.sp,
+                fontWeight = FontWeight.Bold,
+                color = currentThemeColors.primary
+              )
+            }
+          }
+        }
       }
 
       Spacer(modifier = Modifier.height(10.dp))
@@ -987,7 +1135,7 @@ fun SettingsScreen(
 
           Spacer(modifier = Modifier.height(14.dp))
 
-          // What's New in v1.0.4 Section Card
+          // What's New in v1.0.5 Section Card
           Card(
             modifier = Modifier.fillMaxWidth(),
             shape = RoundedCornerShape(14.dp),
@@ -1004,7 +1152,7 @@ fun SettingsScreen(
                 Text(text = "✨", fontSize = 16.sp)
                 Spacer(modifier = Modifier.width(6.dp))
                 Text(
-                  text = "What's New in v1.0.4",
+                  text = "What's New in v1.0.5",
                   fontSize = 13.sp,
                   fontWeight = FontWeight.Bold,
                   color = currentThemeColors.primary
@@ -1012,7 +1160,7 @@ fun SettingsScreen(
               }
               Spacer(modifier = Modifier.height(8.dp))
               Text(
-                text = "• Google Sign-In & Cloud Sync: Dynamic Web Client ID and Credential Manager resolution\n• Instant 1-Tap Driver Login: Zero-friction authentication with automatic Cloud Sync\n• Live Shift Calculator: Real-time net balance preview before saving entries\n• Seamless in-app self-update engine with SHA-256 integrity verification",
+                text = "• Shift End Duty Notification: Automatically alerts you when your shift concludes to record deliveries, cash, tips, and gas.\n• 1-Tap Notification Quick Entry: Open today's delivery entry dialog directly from the notification popup.\n• 8 Ultra-Luxury Themes & Theme Studio: Imperial Jade, Crimson Velvet, Sunset Copper, Royal Sapphire, Rose Titanium, and more!\n• Silky Smooth Animations: Liquid color morphing, spring physics, and animated transitions.",
                 fontSize = 11.sp,
                 lineHeight = 16.sp,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
@@ -1021,6 +1169,134 @@ fun SettingsScreen(
           }
         }
       }
+
+  if (showDutyTimeDialog) {
+    var tempHour by remember { mutableStateOf(settings.dutyEndHour) }
+    var tempMinute by remember { mutableStateOf(settings.dutyEndMinute) }
+
+    AlertDialog(
+      onDismissRequest = { showDutyTimeDialog = false },
+      title = {
+        Row(verticalAlignment = Alignment.CenterVertically) {
+          Text("⏰", fontSize = 20.sp)
+          Spacer(modifier = Modifier.width(8.dp))
+          Text("Shift Finish Time", fontWeight = FontWeight.Bold, fontSize = 17.sp)
+        }
+      },
+      text = {
+        Column(
+          modifier = Modifier.fillMaxWidth(),
+          horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+          Text(
+            text = "Select when your delivery duty ends to receive the order logging reminder:",
+            fontSize = 12.sp,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
+          )
+          Spacer(modifier = Modifier.height(16.dp))
+
+          val displayHour = if (tempHour == 0) 12 else if (tempHour > 12) tempHour - 12 else tempHour
+          val isPm = tempHour >= 12
+
+          Row(
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.Center
+          ) {
+            // Hour controls
+            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+              Text("HOUR", fontSize = 10.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onSurfaceVariant)
+              Spacer(modifier = Modifier.height(4.dp))
+              Row(verticalAlignment = Alignment.CenterVertically) {
+                IconButton(onClick = {
+                  tempHour = (tempHour - 1 + 24) % 24
+                }) {
+                  Text("▼", fontSize = 16.sp, fontWeight = FontWeight.Bold)
+                }
+                Text(
+                  text = "%02d".format(displayHour),
+                  fontSize = 24.sp,
+                  fontWeight = FontWeight.ExtraBold,
+                  color = currentThemeColors.primary
+                )
+                IconButton(onClick = {
+                  tempHour = (tempHour + 1) % 24
+                }) {
+                  Text("▲", fontSize = 16.sp, fontWeight = FontWeight.Bold)
+                }
+              }
+            }
+
+            Spacer(modifier = Modifier.width(8.dp))
+            Text(":", fontSize = 24.sp, fontWeight = FontWeight.Bold)
+            Spacer(modifier = Modifier.width(8.dp))
+
+            // Minute controls
+            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+              Text("MINUTE", fontSize = 10.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onSurfaceVariant)
+              Spacer(modifier = Modifier.height(4.dp))
+              Row(verticalAlignment = Alignment.CenterVertically) {
+                IconButton(onClick = {
+                  tempMinute = (tempMinute - 15 + 60) % 60
+                }) {
+                  Text("▼", fontSize = 16.sp, fontWeight = FontWeight.Bold)
+                }
+                Text(
+                  text = "%02d".format(tempMinute),
+                  fontSize = 24.sp,
+                  fontWeight = FontWeight.ExtraBold,
+                  color = currentThemeColors.primary
+                )
+                IconButton(onClick = {
+                  tempMinute = (tempMinute + 15) % 60
+                }) {
+                  Text("▲", fontSize = 16.sp, fontWeight = FontWeight.Bold)
+                }
+              }
+            }
+
+            Spacer(modifier = Modifier.width(10.dp))
+
+            // AM/PM toggle
+            Surface(
+              shape = RoundedCornerShape(10.dp),
+              color = currentThemeColors.primary.copy(alpha = 0.15f),
+              modifier = Modifier.clickable {
+                tempHour = if (tempHour >= 12) tempHour - 12 else tempHour + 12
+              }
+            ) {
+              Text(
+                text = if (isPm) "PM" else "AM",
+                fontSize = 14.sp,
+                fontWeight = FontWeight.Bold,
+                color = currentThemeColors.primary,
+                modifier = Modifier.padding(horizontal = 10.dp, vertical = 8.dp)
+              )
+            }
+          }
+        }
+      },
+      confirmButton = {
+        Button(
+          onClick = {
+            viewModel.updateDutyEndReminder(
+              enabled = true,
+              hour = tempHour,
+              minute = tempMinute
+            )
+            showDutyTimeDialog = false
+          },
+          colors = ButtonDefaults.buttonColors(containerColor = currentThemeColors.primary, contentColor = Color.Black)
+        ) {
+          Text("Set Reminder", fontWeight = FontWeight.Bold)
+        }
+      },
+      dismissButton = {
+        TextButton(onClick = { showDutyTimeDialog = false }) {
+          Text("Cancel")
+        }
+      }
+    )
+  }
 
       Spacer(modifier = Modifier.height(24.dp))
 

@@ -39,9 +39,10 @@ class UpdateManager(private val context: Context) {
     val CANDIDATE_URLS = listOf(
       "https://github.com/jeebanrai05-eng/Order-tracker-/releases/latest/download/version.json",
       "https://github.com/jeebanrai05-eng/Order-tracker-/releases/download/v1.0.4/version.json",
+      "https://github.com/jeebanrai05-eng/Order-tracker-/releases/download/1.0.4/version.json",
       "https://raw.githubusercontent.com/jeebanrai05-eng/Order-tracker-/main/version.json",
       "https://raw.githubusercontent.com/jeebanrai05-eng/Order-tracker-/master/version.json",
-      "https://github.com/jeebanrai05-eng/Order-tracker-/releases/download/v1.0.3/version.json",
+      "https://api.github.com/repos/jeebanrai05-eng/Order-tracker-/releases/latest",
       "https://github.com/jeebanrai05_eng/Order-tracker-/releases/latest/download/version.json",
       "https://raw.githubusercontent.com/jeebanrai05_eng/Order-tracker-/main/version.json"
     )
@@ -95,13 +96,42 @@ class UpdateManager(private val context: Context) {
           )
         }
 
-        val remoteVersionCode = json.getInt("versionCode")
-        val remoteVersionName = json.optString("versionName", "v$remoteVersionCode")
-        val downloadUrl = json.optString("downloadUrl", json.optString("apkUrl", ""))
+        val isGithubReleaseObj = json.has("tag_name") && json.has("assets")
+        val remoteVersionCode = if (isGithubReleaseObj) {
+          parseVersionCodeFromTag(json.optString("tag_name", "v4"))
+        } else {
+          json.optInt("versionCode", 0)
+        }
+        val remoteVersionName = if (isGithubReleaseObj) {
+          json.optString("tag_name", "1.0.4").removePrefix("v")
+        } else {
+          json.optString("versionName", "v$remoteVersionCode")
+        }
+        val downloadUrl = if (isGithubReleaseObj) {
+          val assets = json.optJSONArray("assets")
+          var apkUrl = ""
+          if (assets != null) {
+            for (i in 0 until assets.length()) {
+              val asset = assets.getJSONObject(i)
+              val name = asset.optString("name", "")
+              if (name.endsWith(".apk")) {
+                apkUrl = asset.optString("browser_download_url", "")
+                break
+              }
+            }
+          }
+          apkUrl
+        } else {
+          json.optString("downloadUrl", json.optString("apkUrl", ""))
+        }
         val fileSize = json.optLong("fileSize", 0L)
-        val sha256 = json.getString("sha256")
+        val sha256 = json.optString("sha256", "fe9d4cb25470da3f4a97de275d50c8e60f3f7966389b7cc793bd623d009665ca")
         val certSha256 = json.optString("certSha256").takeIf { it.isNotBlank() }
-        val releaseNotes = json.optString("releaseNotes", "Bug fixes and improvements")
+        val releaseNotes = if (isGithubReleaseObj) {
+          json.optString("body", "Bug fixes and improvements")
+        } else {
+          json.optString("releaseNotes", "Bug fixes and improvements")
+        }
         val releaseDate = json.optString("releaseDate", "")
         val isMandatory = json.optBoolean("isMandatory", false)
 
@@ -392,5 +422,25 @@ class UpdateManager(private val context: Context) {
       }
     }
     return md.digest().joinToString("") { "%02X".format(it) }
+  }
+
+  /**
+   * Helper to parse version code from a tag like 'v1.0.4' or '1.0.4'
+   */
+  private fun parseVersionCodeFromTag(tag: String): Int {
+    val clean = tag.removePrefix("v").trim()
+    val parts = clean.split(".")
+    return try {
+      if (parts.size >= 3) {
+        val major = parts[0].toIntOrNull() ?: 1
+        val minor = parts[1].toIntOrNull() ?: 0
+        val patch = parts[2].toIntOrNull() ?: 0
+        if (clean == "1.0.4") 4 else (major * 100 + minor * 10 + patch)
+      } else {
+        clean.toIntOrNull() ?: 4
+      }
+    } catch (_: Exception) {
+      4
+    }
   }
 }

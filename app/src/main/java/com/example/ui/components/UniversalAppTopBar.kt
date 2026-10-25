@@ -29,6 +29,7 @@ import androidx.compose.material.icons.filled.CloudDone
 import androidx.compose.material.icons.filled.DarkMode
 import androidx.compose.material.icons.filled.LightMode
 import androidx.compose.material.icons.filled.LocalShipping
+import androidx.compose.material.icons.filled.Palette
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Sync
 import androidx.compose.material.icons.filled.Today
@@ -247,6 +248,21 @@ fun UniversalAppTopBar(
                 modifier = Modifier.size(20.dp)
               )
             }
+          }
+
+          // Luxury Theme Studio Launcher
+          IconButton(
+            onClick = { viewModel.openThemeStudio() },
+            modifier = Modifier
+              .size(36.dp)
+              .testTag("btn_top_theme_studio")
+          ) {
+            Icon(
+              imageVector = Icons.Default.Palette,
+              contentDescription = "Theme Studio",
+              tint = themeColors.primary,
+              modifier = Modifier.size(20.dp)
+            )
           }
 
           // Dark/Light Theme Switcher
