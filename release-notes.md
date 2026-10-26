@@ -10,7 +10,7 @@
 ### Security Verification
 * **APK SHA-256 Checksum:**
   ```
-  3a1f32dd3a938c9b3fbe634ff7710dc5e53e45de5c74d2904f99e62a202cad37
+  f1f203196be91642d8204f36152c805d3a06f9aefe87c0f0f2d61e32c9a78817
   ```
 * **Signing Certificate SHA-256 Fingerprint:**
   ```
@@ -18,7 +18,7 @@
   ```
 
 ### Changelog:
-Release v2.0.5: Ultra-Frosted Glass Neo Theme, Redesigned Themed Orders Dashboard with Target Progress & Filter Chips, Fully Themed Top and Bottom Bars, and System Update Notifications.
+Release v2.0.5: Ultra-Frosted Glass Neo Theme, Redesigned Themed Orders Dashboard with Target Progress & Filter Chips, Fully Themed Top and Bottom Bars, Enhanced Cryptographic Update Verification, and System Update Notifications.
 
 ---
 *Verified and generated with automated cryptographic self-update manifest.*

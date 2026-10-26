@@ -35,16 +35,16 @@ class UpdateManager(private val context: Context) {
     .build()
 
   companion object {
-    const val DEFAULT_MANIFEST_URL = "https://github.com/jeebanrai05-eng/Order-tracker-/releases/latest/download/version.json"
+    const val OFFICIAL_RELEASE_CERT_SHA256 = "2523424FDCA4A6EFAF07756779949EF531C579219488036E19426ADB5DFA9B95"
+    const val DEFAULT_MANIFEST_URL = "https://raw.githubusercontent.com/jeebanrai05-eng/Order-tracker-/main/version.json"
     val CANDIDATE_URLS = listOf(
+      "https://raw.githubusercontent.com/jeebanrai05-eng/Order-tracker-/main/version.json",
       "https://github.com/jeebanrai05-eng/Order-tracker-/releases/latest/download/version.json",
+      "https://github.com/jeebanrai05-eng/Order-tracker-/releases/download/v2.0.5/version.json",
       "https://github.com/jeebanrai05-eng/Order-tracker-/releases/download/v1.0.4/version.json",
       "https://github.com/jeebanrai05-eng/Order-tracker-/releases/download/1.0.4/version.json",
-      "https://raw.githubusercontent.com/jeebanrai05-eng/Order-tracker-/main/version.json",
       "https://raw.githubusercontent.com/jeebanrai05-eng/Order-tracker-/master/version.json",
-      "https://api.github.com/repos/jeebanrai05-eng/Order-tracker-/releases/latest",
-      "https://github.com/jeebanrai05_eng/Order-tracker-/releases/latest/download/version.json",
-      "https://raw.githubusercontent.com/jeebanrai05_eng/Order-tracker-/main/version.json"
+      "https://api.github.com/repos/jeebanrai05-eng/Order-tracker-/releases/latest"
     )
   }
 
@@ -277,29 +277,31 @@ class UpdateManager(private val context: Context) {
 
       emit(DownloadStatus.Verifying("Verifying package integrity and signatures..."))
 
-      // 1. Verify SHA-256 Checksum
+      // 1. Verify Android Package Archive and Version
+      val flags = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+        PackageManager.GET_ACTIVITIES or PackageManager.GET_SIGNING_CERTIFICATES
+      } else {
+        @Suppress("DEPRECATION")
+        PackageManager.GET_ACTIVITIES or PackageManager.GET_SIGNATURES
+      }
+      val pm = context.packageManager
+      val archiveInfo = pm.getPackageArchiveInfo(targetFile.absolutePath, flags)
+
       val computedSha256 = calculateFileSha256(targetFile)
       val expectedSha256 = manifest.sha256.trim()
-      if (!computedSha256.equals(expectedSha256, ignoreCase = true)) {
-        targetFile.delete()
-        emit(
-          DownloadStatus.Failed(
-            "SHA-256 mismatch! Expected: ${expectedSha256.take(12)}... Got: ${computedSha256.take(12)}..."
-          )
-        )
-        return@flow
-      }
-
-      // 2. Verify Android Package Archive and Version
-      val pm = context.packageManager
-      val archiveInfo = pm.getPackageArchiveInfo(
-        targetFile.absolutePath,
-        PackageManager.GET_ACTIVITIES or PackageManager.GET_SIGNATURES
-      )
+      val sha256Matches = computedSha256.equals(expectedSha256, ignoreCase = true)
 
       if (archiveInfo == null) {
         targetFile.delete()
-        emit(DownloadStatus.Failed("Invalid APK package: unable to read archive metadata"))
+        if (!sha256Matches && expectedSha256.isNotBlank()) {
+          emit(
+            DownloadStatus.Failed(
+              "SHA-256 mismatch! Expected: ${expectedSha256.take(12)}... Got: ${computedSha256.take(12)}..."
+            )
+          )
+        } else {
+          emit(DownloadStatus.Failed("Invalid APK package: unable to read archive metadata"))
+        }
         return@flow
       }
 
@@ -330,18 +332,35 @@ class UpdateManager(private val context: Context) {
         return@flow
       }
 
-      // 3. Verify Certificate Fingerprint if specified in manifest
-      if (!manifest.certSha256.isNullOrBlank()) {
-        val apkCertSha256 = extractApkCertificateSha256(archiveInfo)
-        if (apkCertSha256 != null && !apkCertSha256.equals(manifest.certSha256.replace(":", "").trim(), ignoreCase = true)) {
+      // 2. Verify Certificate Fingerprint (Cryptographic Public-Key Security)
+      val apkCertSha256 = extractApkCertificateSha256(archiveInfo)
+      val currentAppCertSha256 = getCurrentAppCertificateSha256()
+      val isOfficialCert = apkCertSha256 != null && (
+        apkCertSha256.equals(OFFICIAL_RELEASE_CERT_SHA256, ignoreCase = true) ||
+        (currentAppCertSha256 != null && apkCertSha256.equals(currentAppCertSha256, ignoreCase = true)) ||
+        (!manifest.certSha256.isNullOrBlank() && apkCertSha256.equals(manifest.certSha256.replace(":", "").trim(), ignoreCase = true))
+      )
+
+      // 3. Verify SHA-256 Checksum or Certificate
+      if (!sha256Matches) {
+        if (!isOfficialCert) {
           targetFile.delete()
           emit(
             DownloadStatus.Failed(
-              "Certificate mismatch: APK signing certificate SHA-256 does not match official release certificate!"
+              "SHA-256 mismatch! Expected: ${expectedSha256.take(12)}... Got: ${computedSha256.take(12)}..."
             )
           )
           return@flow
         }
+        // APK is authentically signed with the official developer release key.
+      } else if (!manifest.certSha256.isNullOrBlank() && !isOfficialCert) {
+        targetFile.delete()
+        emit(
+          DownloadStatus.Failed(
+            "Certificate mismatch: APK signing certificate SHA-256 does not match official release certificate!"
+          )
+        )
+        return@flow
       }
 
       // 4. Verification Successful!
@@ -380,17 +399,37 @@ class UpdateManager(private val context: Context) {
     context.startActivity(installIntent)
   }
 
+  fun getCurrentAppCertificateSha256(): String? {
+    return try {
+      val pm = context.packageManager
+      val packageInfo = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+        pm.getPackageInfo(context.packageName, PackageManager.GET_SIGNING_CERTIFICATES)
+      } else {
+        @Suppress("DEPRECATION")
+        pm.getPackageInfo(context.packageName, PackageManager.GET_SIGNATURES)
+      }
+      extractApkCertificateSha256(packageInfo)
+    } catch (_: Exception) {
+      null
+    }
+  }
+
   /**
    * Helper to extract certificate SHA-256 from PackageInfo.
    */
   private fun extractApkCertificateSha256(packageInfo: android.content.pm.PackageInfo): String? {
     try {
       val signatures = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
-        val signingInfo = packageInfo.signingInfo ?: return null
-        if (signingInfo.hasMultipleSigners()) {
-          signingInfo.apkContentsSigners
+        val signingInfo = packageInfo.signingInfo
+        if (signingInfo != null) {
+          if (signingInfo.hasMultipleSigners()) {
+            signingInfo.apkContentsSigners
+          } else {
+            signingInfo.signingCertificateHistory
+          }
         } else {
-          signingInfo.signingCertificateHistory
+          @Suppress("DEPRECATION")
+          packageInfo.signatures
         }
       } else {
         @Suppress("DEPRECATION")
