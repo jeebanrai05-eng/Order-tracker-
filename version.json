@@ -2,11 +2,11 @@
   "versionCode": 6,
   "versionName": "2.0.5",
   "packageName": "com.ordercom",
-  "downloadUrl": "https://github.com/jeebanrai05-eng/Order-tracker-/releases/download/v2.0.5/app-release.apk",
-  "fileSize": 20635831,
-  "sha256": "f1f203196be91642d8204f36152c805d3a06f9aefe87c0f0f2d61e32c9a78817",
+  "downloadUrl": "https://github.com/jeebanrai05-eng/Order-tracker-/releases/download/v1.0.4/app-release.apk",
+  "fileSize": 20632383,
+  "sha256": "fbdfd07ab29d2e6666ff2a493fb959e6677d95144196f9a7075aa40d397b2d6f",
   "certSha256": "2523424FDCA4A6EFAF07756779949EF531C579219488036E19426ADB5DFA9B95",
-  "releaseNotes": "Release v2.0.5: Ultra-Frosted Glass Neo Theme, Redesigned Themed Orders Dashboard with Target Progress & Filter Chips, Fully Themed Top and Bottom Bars, Enhanced Cryptographic Update Verification, and System Update Notifications.",
+  "releaseNotes": "Release v1.0.4: Google Sign-In setup instructions, SHA-1 registration guidance, and self-update.",
   "releaseDate": "2026-10-26",
   "isMandatory": false
 }
