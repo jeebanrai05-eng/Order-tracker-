@@ -2,7 +2,6 @@ package com.example.ui.screens
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateColorAsState
-import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
@@ -10,6 +9,7 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -23,6 +23,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -32,16 +33,16 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Celebration
+import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.CheckCircle
-import androidx.compose.material.icons.filled.ExpandLess
-import androidx.compose.material.icons.filled.ExpandMore
-import androidx.compose.material.icons.filled.FilterList
+import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material.icons.filled.LocalGasStation
 import androidx.compose.material.icons.filled.LocalShipping
 import androidx.compose.material.icons.filled.Paid
 import androidx.compose.material.icons.filled.RestartAlt
-import androidx.compose.material.icons.filled.Stars
+import androidx.compose.material.icons.filled.RocketLaunch
+import androidx.compose.material.icons.filled.ShoppingBag
+import androidx.compose.material.icons.filled.Today
 import androidx.compose.material.icons.filled.TrackChanges
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -50,6 +51,7 @@ import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -83,7 +85,7 @@ import java.util.Calendar
 
 enum class DayFilter(val label: String, val icon: String) {
   ALL("All Days", "📅"),
-  WORKED("Worked", "🛍️"),
+  WORKED("Worked", "✓"),
   FUEL("Gas Logged", "⛽"),
   GOAL("Goal Met", "🎯")
 }
@@ -105,7 +107,6 @@ fun OrdersScreen(
   val listState = rememberLazyListState()
 
   var selectedFilter by remember { mutableStateOf(DayFilter.ALL) }
-  var isMilestoneCardExpanded by remember { mutableStateOf(true) }
 
   val editingDayFromVm by viewModel.editingDay.collectAsState()
   var editingDay by remember { mutableStateOf<Int?>(null) }
@@ -150,223 +151,292 @@ fun OrdersScreen(
     }
   }
 
-  Column(
+  // Theme-Adaptive Liquid Background
+  Box(
     modifier = modifier
       .fillMaxSize()
-      .background(MaterialTheme.colorScheme.background)
+      .background(themeColors.backgroundDark)
   ) {
-    Spacer(modifier = Modifier.height(6.dp))
-
-    // 1. Month Selector Header: < October 2026 ▾ > with TODAY button
-    MonthSelectorHeader(
-      year = year,
-      month = month,
-      onPreviousMonth = { viewModel.previousMonth() },
-      onNextMonth = { viewModel.nextMonth() },
-      onSelectYearMonth = { y, m -> viewModel.setYearAndMonth(y, m) },
-      onTodayClick = {
-        viewModel.setYearAndMonth(todayYear, todayMonth)
-        scope.launch {
-          val targetIndex = (todayDay - 1).coerceAtLeast(0)
-          listState.animateScrollToItem(targetIndex)
-        }
-      }
-    )
-
-    Spacer(modifier = Modifier.height(6.dp))
-
-    // 2. Animated Monthly Milestone Card
-    MonthlyMilestoneCard(
-      summary = summary,
-      settings = settings,
-      monthName = monthName,
-      year = year,
-      isExpanded = isMilestoneCardExpanded,
-      onToggleExpand = { isMilestoneCardExpanded = !isMilestoneCardExpanded },
-      modifier = Modifier.padding(horizontal = 16.dp)
-    )
-
-    Spacer(modifier = Modifier.height(6.dp))
-
-    // 3. Interactive Filter Chips Bar
-    Row(
+    // 1. Ambient Glow Aura Top Right
+    Box(
       modifier = Modifier
-        .fillMaxWidth()
-        .padding(horizontal = 16.dp)
-        .horizontalScroll(rememberScrollState()),
-      horizontalArrangement = Arrangement.spacedBy(8.dp),
-      verticalAlignment = Alignment.CenterVertically
+        .size(360.dp)
+        .offset(x = 130.dp, y = (-70).dp)
+        .background(
+          Brush.radialGradient(
+            colors = listOf(
+              themeColors.backgroundGlow.copy(alpha = 0.22f),
+              themeColors.variant.copy(alpha = 0.08f),
+              Color.Transparent
+            )
+          )
+        )
+    )
+
+    // 2. Ambient Glow Aura Center Left
+    Box(
+      modifier = Modifier
+        .size(340.dp)
+        .offset(x = (-120).dp, y = 380.dp)
+        .background(
+          Brush.radialGradient(
+            colors = listOf(
+              themeColors.variant.copy(alpha = 0.16f),
+              themeColors.accent.copy(alpha = 0.06f),
+              Color.Transparent
+            )
+          )
+        )
+    )
+
+    Column(
+      modifier = Modifier
+        .fillMaxSize()
     ) {
-      DayFilter.values().forEach { filter ->
-        val isSelected = selectedFilter == filter
-        val count = when (filter) {
-          DayFilter.ALL -> daysInMonth
-          DayFilter.WORKED -> ordersMap.values.count { it.orders > 0 }
-          DayFilter.FUEL -> ordersMap.values.count { it.gas > 0.0 }
-          DayFilter.GOAL -> ordersMap.values.count {
-            val earnings = (it.orders * settings.normalComm) + it.tip - it.gas
-            settings.dailyEarningsGoal > 0 && earnings >= settings.dailyEarningsGoal
+      Spacer(modifier = Modifier.height(6.dp))
+
+      // 1. Month Selector Header: < October 2026 ▾ > with [📅 TODAY] Button
+      MonthSelectorHeader(
+        year = year,
+        month = month,
+        onPreviousMonth = { viewModel.previousMonth() },
+        onNextMonth = { viewModel.nextMonth() },
+        onSelectYearMonth = { y, m -> viewModel.setYearAndMonth(y, m) },
+        onTodayClick = {
+          viewModel.setYearAndMonth(todayYear, todayMonth)
+          scope.launch {
+            val targetIndex = (todayDay - 1).coerceAtLeast(0)
+            listState.animateScrollToItem(targetIndex)
           }
         }
+      )
 
-        val chipBg by animateColorAsState(
-          targetValue = if (isSelected) themeColors.primary else MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
-          animationSpec = tween(250),
-          label = "chip_bg"
-        )
-        val chipTextColor by animateColorAsState(
-          targetValue = if (isSelected) Color.Black else MaterialTheme.colorScheme.onSurfaceVariant,
-          animationSpec = tween(250),
-          label = "chip_text"
-        )
+      Spacer(modifier = Modifier.height(8.dp))
 
+      // 2. Hero Target Progress Card matching screenshot
+      HeroTargetProgressCard(
+        summary = summary,
+        settings = settings,
+        monthName = monthName,
+        modifier = Modifier.padding(horizontal = 16.dp)
+      )
+
+      Spacer(modifier = Modifier.height(10.dp))
+
+      // 3. Horizontal Filter Chips Bar: [All Days (31)] [Worked (17)] [Gas Logged (0)] [Goal Met (0)]
+      Row(
+        modifier = Modifier
+          .fillMaxWidth()
+          .padding(horizontal = 16.dp)
+          .horizontalScroll(rememberScrollState()),
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+        verticalAlignment = Alignment.CenterVertically
+      ) {
+        DayFilter.values().forEach { filter ->
+          val isSelected = selectedFilter == filter
+          val count = when (filter) {
+            DayFilter.ALL -> daysInMonth
+            DayFilter.WORKED -> ordersMap.values.count { it.orders > 0 }
+            DayFilter.FUEL -> ordersMap.values.count { it.gas > 0.0 }
+            DayFilter.GOAL -> ordersMap.values.count {
+              val earnings = (it.orders * settings.normalComm) + it.tip - it.gas
+              settings.dailyEarningsGoal > 0 && earnings >= settings.dailyEarningsGoal
+            }
+          }
+
+          val chipBorderColor = when (filter) {
+            DayFilter.ALL -> if (isSelected) themeColors.primary else Color(0xFF1E293B)
+            DayFilter.WORKED -> if (isSelected) themeColors.primary else Color(0xFF0D9488).copy(alpha = 0.5f)
+            DayFilter.FUEL -> if (isSelected) Color(0xFFF97316) else Color(0xFFEA580C).copy(alpha = 0.4f)
+            DayFilter.GOAL -> if (isSelected) Color(0xFFA855F7) else Color(0xFF7C3AED).copy(alpha = 0.4f)
+          }
+
+          Box(
+            modifier = Modifier
+              .clip(RoundedCornerShape(12.dp))
+              .background(
+                if (isSelected) {
+                  Brush.horizontalGradient(
+                    listOf(themeColors.primary, themeColors.variant)
+                  )
+                } else {
+                  Brush.horizontalGradient(
+                    listOf(Color(0xFF0A1325), Color(0xFF070E1A))
+                  )
+                }
+              )
+              .border(1.dp, chipBorderColor, RoundedCornerShape(12.dp))
+              .clickable { selectedFilter = filter }
+              .padding(horizontal = 12.dp, vertical = 7.dp)
+              .testTag("filter_${filter.name.lowercase()}"),
+            contentAlignment = Alignment.Center
+          ) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+              Text(
+                text = filter.icon,
+                fontSize = 12.sp,
+                color = if (isSelected) Color.Black else themeColors.primary
+              )
+              Spacer(modifier = Modifier.width(6.dp))
+              Text(
+                text = "${filter.label} ($count)",
+                fontSize = 12.sp,
+                fontWeight = if (isSelected) FontWeight.Black else FontWeight.SemiBold,
+                color = if (isSelected) Color.Black else Color.White
+              )
+            }
+          }
+        }
+      }
+
+      Spacer(modifier = Modifier.height(10.dp))
+
+      // 4. Table Header: 📅 Date | 🛍️ Orders | 🪙 Tip | ⛽ Gas
+      Row(
+        modifier = Modifier
+          .fillMaxWidth()
+          .padding(horizontal = 22.dp, vertical = 6.dp),
+        verticalAlignment = Alignment.CenterVertically
+      ) {
+        Row(
+          verticalAlignment = Alignment.CenterVertically,
+          modifier = Modifier.width(62.dp)
+        ) {
+          Text(text = "📅", fontSize = 12.sp)
+          Spacer(modifier = Modifier.width(4.dp))
+          Text(
+            text = "Date",
+            fontSize = 12.sp,
+            fontWeight = FontWeight.Bold,
+            color = Color(0xFF94A3B8)
+          )
+        }
+
+        Row(
+          verticalAlignment = Alignment.CenterVertically,
+          horizontalArrangement = Arrangement.Center,
+          modifier = Modifier.weight(1f)
+        ) {
+          Text(text = "🛍️", fontSize = 12.sp)
+          Spacer(modifier = Modifier.width(4.dp))
+          Text(
+            text = "Orders",
+            fontSize = 12.sp,
+            fontWeight = FontWeight.Bold,
+            color = Color(0xFF94A3B8)
+          )
+        }
+
+        Row(
+          verticalAlignment = Alignment.CenterVertically,
+          horizontalArrangement = Arrangement.Center,
+          modifier = Modifier.weight(1f)
+        ) {
+          Text(text = "🪙", fontSize = 12.sp)
+          Spacer(modifier = Modifier.width(4.dp))
+          Text(
+            text = "Tip",
+            fontSize = 12.sp,
+            fontWeight = FontWeight.Bold,
+            color = Color(0xFF94A3B8)
+          )
+        }
+
+        Row(
+          verticalAlignment = Alignment.CenterVertically,
+          horizontalArrangement = Arrangement.Center,
+          modifier = Modifier.weight(1f)
+        ) {
+          Text(text = "⛽", fontSize = 12.sp)
+          Spacer(modifier = Modifier.width(4.dp))
+          Text(
+            text = "Gas",
+            fontSize = 12.sp,
+            fontWeight = FontWeight.Bold,
+            color = Color(0xFF94A3B8)
+          )
+        }
+      }
+
+      Spacer(modifier = Modifier.height(4.dp))
+
+      // 5. Daily Order Rows List
+      if (filteredDays.isEmpty()) {
         Box(
           modifier = Modifier
-            .clip(RoundedCornerShape(12.dp))
-            .background(chipBg)
-            .clickable { selectedFilter = filter }
-            .padding(horizontal = 12.dp, vertical = 6.dp)
-            .testTag("filter_${filter.name.lowercase()}"),
+            .fillMaxWidth()
+            .weight(1f)
+            .padding(32.dp),
           contentAlignment = Alignment.Center
         ) {
-          Row(verticalAlignment = Alignment.CenterVertically) {
-            Text(text = filter.icon, fontSize = 13.sp)
-            Spacer(modifier = Modifier.width(6.dp))
+          Column(horizontalAlignment = Alignment.CenterHorizontally) {
+            Text(text = "🔍", fontSize = 42.sp)
+            Spacer(modifier = Modifier.height(10.dp))
             Text(
-              text = "${filter.label} ($count)",
+              text = "No records match '${selectedFilter.label}'",
+              fontSize = 15.sp,
+              fontWeight = FontWeight.SemiBold,
+              color = Color.White
+            )
+            Spacer(modifier = Modifier.height(6.dp))
+            Text(
+              text = "Tap any day in the list to log orders and fuel.",
               fontSize = 12.sp,
-              fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium,
-              color = chipTextColor
+              color = Color(0xFF94A3B8),
+              textAlign = TextAlign.Center
+            )
+            Spacer(modifier = Modifier.height(14.dp))
+            Button(
+              onClick = { selectedFilter = DayFilter.ALL },
+              shape = RoundedCornerShape(12.dp),
+              colors = ButtonDefaults.buttonColors(containerColor = themeColors.primary, contentColor = Color.Black)
+            ) {
+              Icon(imageVector = Icons.Default.RestartAlt, contentDescription = null, modifier = Modifier.size(16.dp))
+              Spacer(modifier = Modifier.width(6.dp))
+              Text("Show All Days", fontWeight = FontWeight.Bold, fontSize = 13.sp)
+            }
+          }
+        }
+      } else {
+        LazyColumn(
+          state = listState,
+          modifier = Modifier
+            .fillMaxWidth()
+            .weight(1f),
+          contentPadding = PaddingValues(start = 16.dp, end = 16.dp, bottom = 110.dp),
+          verticalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+          items(filteredDays.size, key = { filteredDays[it] }) { idx ->
+            val dayNum = filteredDays[idx]
+            val record = ordersMap[dayNum]
+
+            val cal = Calendar.getInstance().apply {
+              set(Calendar.YEAR, year)
+              set(Calendar.MONTH, month - 1)
+              set(Calendar.DAY_OF_MONTH, dayNum)
+            }
+            val dayOfWeekName = when (cal.get(Calendar.DAY_OF_WEEK)) {
+              Calendar.SUNDAY -> "SUN"
+              Calendar.MONDAY -> "MON"
+              Calendar.TUESDAY -> "TUE"
+              Calendar.WEDNESDAY -> "WED"
+              Calendar.THURSDAY -> "THU"
+              Calendar.FRIDAY -> "FRI"
+              Calendar.SATURDAY -> "SAT"
+              else -> ""
+            }
+
+            val isToday = (isViewingCurrentMonth && dayNum == todayDay)
+
+            NeonOrderDayCard(
+              day = dayNum,
+              dayOfWeek = dayOfWeekName,
+              isToday = isToday,
+              record = record,
+              settings = settings,
+              onClick = { editingDay = dayNum }
             )
           }
-        }
-      }
-    }
-
-    Spacer(modifier = Modifier.height(6.dp))
-
-    // 4. Column Headers: Date | 🛍️ Orders | 💵 Tip | ⛽ Gas
-    Row(
-      modifier = Modifier
-        .fillMaxWidth()
-        .padding(horizontal = 20.dp, vertical = 4.dp),
-      verticalAlignment = Alignment.CenterVertically
-    ) {
-      Text(
-        text = "Date",
-        fontSize = 12.sp,
-        fontWeight = FontWeight.Bold,
-        color = MaterialTheme.colorScheme.onSurfaceVariant,
-        textAlign = TextAlign.Center,
-        modifier = Modifier.width(62.dp)
-      )
-
-      Text(
-        text = "🛍️ Orders",
-        fontSize = 13.sp,
-        fontWeight = FontWeight.SemiBold,
-        color = MaterialTheme.colorScheme.onSurfaceVariant,
-        textAlign = TextAlign.Center,
-        modifier = Modifier.weight(1f)
-      )
-
-      Text(
-        text = "💵 Tip",
-        fontSize = 13.sp,
-        fontWeight = FontWeight.SemiBold,
-        color = MaterialTheme.colorScheme.onSurfaceVariant,
-        textAlign = TextAlign.Center,
-        modifier = Modifier.weight(1f)
-      )
-
-      Text(
-        text = "⛽ Gas",
-        fontSize = 13.sp,
-        fontWeight = FontWeight.SemiBold,
-        color = MaterialTheme.colorScheme.onSurfaceVariant,
-        textAlign = TextAlign.Center,
-        modifier = Modifier.weight(1f)
-      )
-    }
-
-    Spacer(modifier = Modifier.height(2.dp))
-
-    // 5. List of Day Rows or Empty State
-    if (filteredDays.isEmpty()) {
-      Box(
-        modifier = Modifier
-          .fillMaxWidth()
-          .weight(1f)
-          .padding(32.dp),
-        contentAlignment = Alignment.Center
-      ) {
-        Column(horizontalAlignment = Alignment.CenterHorizontally) {
-          Text(text = "🔍", fontSize = 42.sp)
-          Spacer(modifier = Modifier.height(10.dp))
-          Text(
-            text = "No records match '${selectedFilter.label}'",
-            fontSize = 15.sp,
-            fontWeight = FontWeight.SemiBold,
-            color = MaterialTheme.colorScheme.onSurface
-          )
-          Spacer(modifier = Modifier.height(6.dp))
-          Text(
-            text = "Tap any day in the calendar to log orders and fuel.",
-            fontSize = 12.sp,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-            textAlign = TextAlign.Center
-          )
-          Spacer(modifier = Modifier.height(14.dp))
-          Button(
-            onClick = { selectedFilter = DayFilter.ALL },
-            shape = RoundedCornerShape(12.dp),
-            colors = ButtonDefaults.buttonColors(containerColor = themeColors.primary, contentColor = Color.Black)
-          ) {
-            Icon(imageVector = Icons.Default.RestartAlt, contentDescription = null, modifier = Modifier.size(16.dp))
-            Spacer(modifier = Modifier.width(6.dp))
-            Text("Show All Days", fontWeight = FontWeight.Bold, fontSize = 13.sp)
-          }
-        }
-      }
-    } else {
-      LazyColumn(
-        state = listState,
-        modifier = Modifier
-          .fillMaxWidth()
-          .weight(1f),
-        contentPadding = PaddingValues(start = 16.dp, end = 16.dp, bottom = 96.dp),
-        verticalArrangement = Arrangement.spacedBy(10.dp)
-      ) {
-        items(filteredDays.size, key = { filteredDays[it] }) { idx ->
-          val dayNum = filteredDays[idx]
-          val record = ordersMap[dayNum]
-
-          val cal = Calendar.getInstance().apply {
-            set(Calendar.YEAR, year)
-            set(Calendar.MONTH, month - 1)
-            set(Calendar.DAY_OF_MONTH, dayNum)
-          }
-          val dayOfWeekName = when (cal.get(Calendar.DAY_OF_WEEK)) {
-            Calendar.SUNDAY -> "Sun"
-            Calendar.MONDAY -> "Mon"
-            Calendar.TUESDAY -> "Tue"
-            Calendar.WEDNESDAY -> "Wed"
-            Calendar.THURSDAY -> "Thu"
-            Calendar.FRIDAY -> "Fri"
-            Calendar.SATURDAY -> "Sat"
-            else -> ""
-          }
-
-          val isToday = (isViewingCurrentMonth && dayNum == todayDay)
-
-          OrderDayCard(
-            day = dayNum,
-            dayOfWeek = dayOfWeekName,
-            isToday = isToday,
-            record = record,
-            settings = settings,
-            onClick = { editingDay = dayNum }
-          )
         }
       }
     }
@@ -391,14 +461,15 @@ fun OrdersScreen(
   }
 }
 
+/**
+ * Hero Target Progress Card matching screenshot:
+ * Shows October Target Progress, Progress bar, 3-column stats with dividers.
+ */
 @Composable
-fun MonthlyMilestoneCard(
+private fun HeroTargetProgressCard(
   summary: com.example.ui.MonthlySummary,
   settings: com.example.data.UserSettings,
   monthName: String,
-  year: Int,
-  isExpanded: Boolean,
-  onToggleExpand: () -> Unit,
   modifier: Modifier = Modifier
 ) {
   val themeColors = MaterialThemeColors
@@ -412,145 +483,194 @@ fun MonthlyMilestoneCard(
     label = "progress_anim"
   )
 
-  val isTargetHit = currentOrders >= targetOrders
-
   Card(
     modifier = modifier
       .fillMaxWidth()
-      .animateContentSize(animationSpec = tween(300))
-      .shadow(elevation = 3.dp, shape = RoundedCornerShape(18.dp)),
-    shape = RoundedCornerShape(18.dp),
-    colors = CardDefaults.cardColors(
-      containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.45f)
-    ),
-    border = BorderStroke(
-      width = 1.dp,
-      color = if (isTargetHit) ProfitGreen.copy(alpha = 0.6f) else themeColors.primary.copy(alpha = 0.25f)
-    )
+      .testTag("card_target_progress"),
+    shape = RoundedCornerShape(22.dp),
+    colors = CardDefaults.cardColors(containerColor = themeColors.cardBackground),
+    border = BorderStroke(1.2.dp, themeColors.cardBorder)
   ) {
     Column(
       modifier = Modifier
         .fillMaxWidth()
-        .padding(horizontal = 14.dp, vertical = 10.dp)
+        .padding(16.dp)
     ) {
+      // Header: [🚀 Rocket] Month Target Progress ... 47% ↘
       Row(
         modifier = Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically
       ) {
         Row(verticalAlignment = Alignment.CenterVertically) {
-          Icon(
-            imageVector = if (isTargetHit) Icons.Default.Celebration else Icons.Default.TrackChanges,
-            contentDescription = null,
-            tint = if (isTargetHit) ProfitGreen else themeColors.primary,
-            modifier = Modifier.size(20.dp)
-          )
-          Spacer(modifier = Modifier.width(8.dp))
+          Box(
+            modifier = Modifier
+              .size(34.dp)
+              .clip(CircleShape)
+              .background(themeColors.primary.copy(alpha = 0.2f)),
+            contentAlignment = Alignment.Center
+          ) {
+            Icon(
+              imageVector = Icons.Default.RocketLaunch,
+              contentDescription = null,
+              tint = themeColors.primary,
+              modifier = Modifier.size(18.dp)
+            )
+          }
+
+          Spacer(modifier = Modifier.width(10.dp))
+
           Text(
-            text = if (isTargetHit) "Monthly Target Reached! 🎉" else "$monthName Target Progress",
-            fontSize = 13.sp,
+            text = "$monthName Target Progress",
+            fontSize = 14.sp,
             fontWeight = FontWeight.Bold,
-            color = if (isTargetHit) ProfitGreen else MaterialTheme.colorScheme.onSurface
+            color = Color.White
           )
         }
 
-        Row(
-          verticalAlignment = Alignment.CenterVertically,
-          modifier = Modifier
-            .clip(RoundedCornerShape(10.dp))
-            .clickable { onToggleExpand() }
-            .padding(horizontal = 6.dp, vertical = 2.dp)
-        ) {
+        Row(verticalAlignment = Alignment.CenterVertically) {
           Text(
             text = "${(rawProgress * 100).toInt()}%",
-            fontSize = 12.sp,
+            fontSize = 15.sp,
             fontWeight = FontWeight.ExtraBold,
-            color = if (isTargetHit) ProfitGreen else themeColors.primary
+            color = themeColors.primary
           )
           Spacer(modifier = Modifier.width(4.dp))
-          Icon(
-            imageVector = if (isExpanded) Icons.Default.ExpandLess else Icons.Default.ExpandMore,
-            contentDescription = "Toggle",
-            tint = MaterialTheme.colorScheme.onSurfaceVariant,
-            modifier = Modifier.size(16.dp)
+          Text(
+            text = "↘",
+            fontSize = 14.sp,
+            fontWeight = FontWeight.Bold,
+            color = themeColors.primary
           )
         }
       }
 
-      Spacer(modifier = Modifier.height(6.dp))
+      Spacer(modifier = Modifier.height(10.dp))
 
-      // Smooth Animated Linear Progress Bar
-      LinearProgressIndicator(
-        progress = { animatedProgress },
+      // Glowing Horizontal Progress Bar
+      Box(
         modifier = Modifier
           .fillMaxWidth()
-          .height(6.dp)
-          .clip(RoundedCornerShape(3.dp)),
-        color = if (isTargetHit) ProfitGreen else themeColors.primary,
-        trackColor = MaterialTheme.colorScheme.surfaceVariant
-      )
-
-      AnimatedVisibility(
-        visible = isExpanded,
-        enter = fadeIn(tween(200)),
-        exit = fadeOut(tween(200))
+          .height(8.dp)
+          .clip(RoundedCornerShape(4.dp))
+          .background(Color(0xFF131C31))
       ) {
-        Column {
-          Spacer(modifier = Modifier.height(8.dp))
-          Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceBetween
-          ) {
-            Column {
-              Text(
-                text = "Orders Delivered",
-                fontSize = 11.sp,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
+        if (animatedProgress > 0f) {
+          Box(
+            modifier = Modifier
+              .fillMaxWidth(fraction = animatedProgress)
+              .height(8.dp)
+              .clip(RoundedCornerShape(4.dp))
+              .background(
+                Brush.horizontalGradient(
+                  listOf(themeColors.primary, themeColors.variant)
+                )
               )
-              Text(
-                text = "$currentOrders / $targetOrders",
-                fontSize = 13.sp,
-                fontWeight = FontWeight.Bold,
-                color = MaterialTheme.colorScheme.onSurface
-              )
-            }
+          )
+        }
+      }
 
-            Column(horizontalAlignment = Alignment.CenterHorizontally) {
-              Text(
-                text = "Total Tips",
-                fontSize = 11.sp,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-              )
-              Text(
-                text = "${settings.currency} ${String.format("%.2f", summary.totalTips)}",
-                fontSize = 13.sp,
-                fontWeight = FontWeight.Bold,
-                color = ProfitGreen
-              )
-            }
+      Spacer(modifier = Modifier.height(14.dp))
 
-            Column(horizontalAlignment = Alignment.End) {
-              Text(
-                text = "Est. Net Profit",
-                fontSize = 11.sp,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-              )
-              Text(
-                text = "${settings.currency} ${String.format("%.2f", summary.netProfit)}",
-                fontSize = 13.sp,
-                fontWeight = FontWeight.Bold,
-                color = if (summary.netProfit >= 0) ProfitGreen else Color(0xFFFF5252)
-              )
-            }
+      // 3-Column Metrics Row: Orders Delivered | Total Tips | Est. Net Profit
+      Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically
+      ) {
+        // Col 1: Orders Delivered
+        Column(modifier = Modifier.weight(1f)) {
+          Row(verticalAlignment = Alignment.CenterVertically) {
+            Text(text = "📦", fontSize = 12.sp)
+            Spacer(modifier = Modifier.width(4.dp))
+            Text(
+              text = "Orders Delivered",
+              fontSize = 10.sp,
+              color = Color(0xFF94A3B8),
+              fontWeight = FontWeight.Medium
+            )
           }
+          Spacer(modifier = Modifier.height(2.dp))
+          Text(
+            text = "$currentOrders / $targetOrders",
+            fontSize = 14.sp,
+            fontWeight = FontWeight.ExtraBold,
+            color = Color.White
+          )
+        }
+
+        // Divider
+        Box(
+          modifier = Modifier
+            .width(1.dp)
+            .height(28.dp)
+            .background(Color(0xFF1E293B))
+        )
+
+        // Col 2: Total Tips
+        Column(
+          modifier = Modifier.weight(1f).padding(horizontal = 8.dp)
+        ) {
+          Row(verticalAlignment = Alignment.CenterVertically) {
+            Text(text = "🪙", fontSize = 12.sp)
+            Spacer(modifier = Modifier.width(4.dp))
+            Text(
+              text = "Total Tips",
+              fontSize = 10.sp,
+              color = Color(0xFF94A3B8),
+              fontWeight = FontWeight.Medium
+            )
+          }
+          Spacer(modifier = Modifier.height(2.dp))
+          Text(
+            text = "${settings.currency} ${String.format("%.2f", summary.totalTips)}",
+            fontSize = 14.sp,
+            fontWeight = FontWeight.ExtraBold,
+            color = themeColors.primary
+          )
+        }
+
+        // Divider
+        Box(
+          modifier = Modifier
+            .width(1.dp)
+            .height(28.dp)
+            .background(Color(0xFF1E293B))
+        )
+
+        // Col 3: Est. Net Profit
+        Column(
+          modifier = Modifier.weight(1f).padding(start = 8.dp)
+        ) {
+          Row(verticalAlignment = Alignment.CenterVertically) {
+            Text(text = "💰", fontSize = 12.sp)
+            Spacer(modifier = Modifier.width(4.dp))
+            Text(
+              text = "Est. Net Profit",
+              fontSize = 10.sp,
+              color = Color(0xFF94A3B8),
+              fontWeight = FontWeight.Medium
+            )
+          }
+          Spacer(modifier = Modifier.height(2.dp))
+          Text(
+            text = "${settings.currency} ${String.format("%.2f", summary.netProfit)}",
+            fontSize = 14.sp,
+            fontWeight = FontWeight.ExtraBold,
+            color = ProfitGreen
+          )
         }
       }
     }
   }
 }
 
+/**
+ * Neon Order Day Card matching the screenshot:
+ * Date badge on left (day number + day of week), orders count with bag icon, tip, gas, and right arrow.
+ */
 @Composable
-fun OrderDayCard(
+private fun NeonOrderDayCard(
   day: Int,
   dayOfWeek: String,
   isToday: Boolean,
@@ -563,18 +683,6 @@ fun OrderDayCard(
   val hasOrders = record != null && record.orders > 0
   val hasTip = record != null && record.tip > 0.0
   val hasGas = record != null && record.gas > 0.0
-
-  val dayEarnings = if (record != null) {
-    (record.orders * settings.normalComm) + record.tip - record.gas
-  } else 0.0
-
-  val goal = settings.dailyEarningsGoal
-  val isGoalMet = goal > 0 && dayEarnings >= goal
-  val goalProgress = if (goal > 0) (dayEarnings / goal).toFloat().coerceIn(0f, 1f) else 0f
-
-  val isWeekend = dayOfWeek.equals("Fri", ignoreCase = true) ||
-                  dayOfWeek.equals("Sat", ignoreCase = true) ||
-                  dayOfWeek.equals("Sun", ignoreCase = true)
 
   val interactionSource = remember { MutableInteractionSource() }
   val isPressed by interactionSource.collectIsPressedAsState()
@@ -591,48 +699,42 @@ fun OrderDayCard(
         scaleX = scale
         scaleY = scale
       }
-      .shadow(
-        elevation = if (isToday) 6.dp else 2.dp,
-        shape = RoundedCornerShape(18.dp)
-      )
-      .clip(RoundedCornerShape(18.dp))
+      .clip(RoundedCornerShape(14.dp))
       .clickable(
         interactionSource = interactionSource,
         indication = null,
         onClick = onClick
       )
       .testTag("day_row_$day"),
-    shape = RoundedCornerShape(18.dp),
+    shape = RoundedCornerShape(14.dp),
     colors = CardDefaults.cardColors(
       containerColor = if (isToday) {
-        themeColors.primary.copy(alpha = 0.08f)
+        Color(0xFF03224C).copy(alpha = 0.85f)
       } else {
-        MaterialTheme.colorScheme.surface
+        themeColors.cardBackground
       }
     ),
     border = if (isToday) {
-      BorderStroke(2.dp, themeColors.primary)
+      BorderStroke(1.8.dp, themeColors.primary)
     } else {
-      BorderStroke(1.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.2f))
+      BorderStroke(1.dp, Color(0xFF1E293B).copy(alpha = 0.85f))
     }
   ) {
-    Column(
-      modifier = Modifier
-        .fillMaxWidth()
-        .padding(horizontal = 12.dp, vertical = 10.dp)
-    ) {
+    Box(modifier = Modifier.fillMaxWidth()) {
       Row(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier
+          .fillMaxWidth()
+          .padding(horizontal = 12.dp, vertical = 9.dp),
         verticalAlignment = Alignment.CenterVertically
       ) {
-        // Day number + Day of week box on left
+        // Date Badge Container: Day Number (top) + Day Of Week (bottom)
         Box(
           modifier = Modifier
-            .size(52.dp)
-            .clip(RoundedCornerShape(14.dp))
-            .background(
-              if (isToday) themeColors.primary else MaterialTheme.colorScheme.surfaceVariant
-            ),
+            .width(46.dp)
+            .height(44.dp)
+            .clip(RoundedCornerShape(10.dp))
+            .background(Color(0xFF070E1A))
+            .border(1.dp, if (isToday) themeColors.primary else Color(0xFF1E293B), RoundedCornerShape(10.dp)),
           contentAlignment = Alignment.Center
         ) {
           Column(
@@ -640,38 +742,59 @@ fun OrderDayCard(
             verticalArrangement = Arrangement.Center
           ) {
             Text(
-              text = day.toString(),
-              fontSize = 17.sp,
-              fontWeight = FontWeight.ExtraBold,
-              color = if (isToday) Color.Black else MaterialTheme.colorScheme.onSurface
+              text = "$day",
+              fontSize = 15.sp,
+              fontWeight = FontWeight.Black,
+              color = Color.White
             )
             Text(
               text = dayOfWeek.uppercase(),
-              fontSize = 10.sp,
+              fontSize = 9.sp,
               fontWeight = FontWeight.Bold,
-              color = if (isToday) {
-                Color.Black.copy(alpha = 0.85f)
-              } else if (isWeekend) {
-                themeColors.primary
-              } else {
-                MaterialTheme.colorScheme.onSurfaceVariant
-              }
+              color = themeColors.primary
             )
+          }
+        }
+
+        // If today, show a small "📅 Today" pill tag beside date badge
+        if (isToday) {
+          Spacer(modifier = Modifier.width(6.dp))
+          Surface(
+            shape = RoundedCornerShape(8.dp),
+            color = themeColors.primary.copy(alpha = 0.2f),
+            border = BorderStroke(1.dp, themeColors.primary.copy(alpha = 0.6f))
+          ) {
+            Row(
+              verticalAlignment = Alignment.CenterVertically,
+              modifier = Modifier.padding(horizontal = 6.dp, vertical = 3.dp)
+            ) {
+              Text(text = "📅", fontSize = 9.sp)
+              Spacer(modifier = Modifier.width(3.dp))
+              Text(
+                text = "Today",
+                fontSize = 10.sp,
+                fontWeight = FontWeight.Bold,
+                color = themeColors.primary
+              )
+            }
           }
         }
 
         Spacer(modifier = Modifier.width(10.dp))
 
         // Orders Column
-        Box(
+        Row(
           modifier = Modifier.weight(1f),
-          contentAlignment = Alignment.Center
+          verticalAlignment = Alignment.CenterVertically,
+          horizontalArrangement = Arrangement.Center
         ) {
+          Text(text = "🛍️", fontSize = 12.sp)
+          Spacer(modifier = Modifier.width(5.dp))
           Text(
             text = if (hasOrders) "${record?.orders}" else "Ord",
-            fontSize = 16.sp,
+            fontSize = 14.sp,
             fontWeight = if (hasOrders) FontWeight.Bold else FontWeight.Medium,
-            color = if (hasOrders) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.45f)
+            color = if (hasOrders) Color.White else Color(0xFF64748B)
           )
         }
 
@@ -681,10 +804,10 @@ fun OrderDayCard(
           contentAlignment = Alignment.Center
         ) {
           Text(
-            text = if (hasTip) String.format("%.2f", record?.tip) else "—",
-            fontSize = 15.sp,
-            fontWeight = if (hasTip) FontWeight.SemiBold else FontWeight.Normal,
-            color = if (hasTip) ProfitGreen else MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.45f)
+            text = if (hasTip) String.format("%.2f", record?.tip) else "--",
+            fontSize = 14.sp,
+            fontWeight = if (hasTip) FontWeight.Bold else FontWeight.Normal,
+            color = if (hasTip) themeColors.primary else Color(0xFF64748B)
           )
         }
 
@@ -694,83 +817,36 @@ fun OrderDayCard(
           contentAlignment = Alignment.Center
         ) {
           Text(
-            text = if (hasGas) String.format("%.2f", record?.gas) else "—",
-            fontSize = 15.sp,
-            fontWeight = if (hasGas) FontWeight.SemiBold else FontWeight.Normal,
-            color = if (hasGas) Color(0xFFFF5252) else MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.45f)
+            text = if (hasGas) String.format("%.2f", record?.gas) else "--",
+            fontSize = 14.sp,
+            fontWeight = if (hasGas) FontWeight.Bold else FontWeight.Normal,
+            color = if (hasGas) Color(0xFFFF5252) else Color(0xFF64748B)
           )
         }
 
-        // Status indicator (Goal Met or Today badge)
-        if (isToday) {
-          Box(
-            modifier = Modifier
-              .clip(RoundedCornerShape(8.dp))
-              .background(themeColors.primary)
-              .padding(horizontal = 6.dp, vertical = 3.dp)
-          ) {
-            Text(
-              text = "TODAY",
-              fontSize = 9.sp,
-              fontWeight = FontWeight.ExtraBold,
-              color = Color.Black
-            )
-          }
-        } else if (isGoalMet) {
-          Box(
-            modifier = Modifier
-              .clip(RoundedCornerShape(8.dp))
-              .background(ProfitGreen.copy(alpha = 0.15f))
-              .padding(horizontal = 6.dp, vertical = 3.dp)
-          ) {
-            Text(
-              text = "🎯",
-              fontSize = 11.sp
-            )
-          }
-        }
+        // Right Chevron
+        Text(
+          text = "›",
+          fontSize = 18.sp,
+          fontWeight = FontWeight.ExtraBold,
+          color = Color(0xFF64748B)
+        )
       }
 
-      // Today's Live Daily Earnings Goal Progress bar
-      if (isToday && goal > 0) {
-        Spacer(modifier = Modifier.height(8.dp))
-        Row(
-          modifier = Modifier.fillMaxWidth(),
-          horizontalArrangement = Arrangement.SpaceBetween,
-          verticalAlignment = Alignment.CenterVertically
+      // Checkmark Badge in top-right corner if day has orders
+      if (hasOrders) {
+        Box(
+          modifier = Modifier
+            .align(Alignment.TopEnd)
+            .padding(top = 4.dp, end = 6.dp)
         ) {
-          Row(verticalAlignment = Alignment.CenterVertically) {
-            Icon(
-              imageVector = if (isGoalMet) Icons.Default.CheckCircle else Icons.Default.TrackChanges,
-              contentDescription = null,
-              tint = if (isGoalMet) ProfitGreen else themeColors.primary,
-              modifier = Modifier.size(14.dp)
-            )
-            Spacer(modifier = Modifier.width(4.dp))
-            Text(
-              text = if (isGoalMet) "Daily Goal Achieved! 🎯" else "Daily Goal Progress",
-              fontSize = 11.sp,
-              fontWeight = FontWeight.Bold,
-              color = if (isGoalMet) ProfitGreen else themeColors.primary
-            )
-          }
           Text(
-            text = "${settings.currency} ${String.format("%.1f", dayEarnings)} / ${String.format("%.1f", goal)}",
+            text = "✓",
             fontSize = 11.sp,
-            fontWeight = FontWeight.SemiBold,
-            color = MaterialTheme.colorScheme.onSurfaceVariant
+            fontWeight = FontWeight.Black,
+            color = Color(0xFF10B981)
           )
         }
-        Spacer(modifier = Modifier.height(4.dp))
-        LinearProgressIndicator(
-          progress = { goalProgress },
-          modifier = Modifier
-            .fillMaxWidth()
-            .height(5.dp)
-            .clip(RoundedCornerShape(3.dp)),
-          color = if (isGoalMet) ProfitGreen else themeColors.primary,
-          trackColor = MaterialTheme.colorScheme.surfaceVariant
-        )
       }
     }
   }

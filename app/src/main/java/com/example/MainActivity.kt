@@ -100,7 +100,9 @@ class MainActivity : ComponentActivity() {
   }
 
   private fun handleNotificationIntent(intent: Intent?, viewModel: MainViewModel) {
-    if (intent?.getBooleanExtra("open_add_order", false) == true) {
+    if (intent?.getBooleanExtra("open_update_center", false) == true) {
+      viewModel.openUpdateCenter()
+    } else if (intent?.getBooleanExtra("open_add_order", false) == true) {
       val now = Calendar.getInstance()
       val targetDay = intent.getIntExtra("target_day", now.get(Calendar.DAY_OF_MONTH))
       viewModel.setYearAndMonth(now.get(Calendar.YEAR), now.get(Calendar.MONTH) + 1)

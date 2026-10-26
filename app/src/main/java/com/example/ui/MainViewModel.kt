@@ -131,6 +131,10 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     com.example.notification.DutyReminderManager.triggerTestNotification(getApplication())
   }
 
+  fun triggerTestUpdateNotification() {
+    com.example.notification.AppUpdateNotificationManager.triggerTestUpdateNotification(getApplication())
+  }
+
   init {
     val initialSettings = preferencesManager.loadSettings()
     if (initialSettings.dutyEndReminderEnabled) {
@@ -147,6 +151,12 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         val result = updateManager.checkUpdate()
         if (result is UpdateCheckResult.UpdateAvailable) {
           _updateCheckResult.value = result
+          com.example.notification.AppUpdateNotificationManager.showUpdateAvailableNotification(
+            context = getApplication(),
+            versionName = result.manifest.versionName,
+            versionCode = result.manifest.versionCode,
+            releaseNotes = result.manifest.releaseNotes
+          )
         }
       } catch (_: Exception) {}
     }
@@ -462,6 +472,12 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         }
         is UpdateCheckResult.UpdateAvailable -> {
           _snackbarMessage.emit("New update found: ${result.manifest.versionName}!")
+          com.example.notification.AppUpdateNotificationManager.showUpdateAvailableNotification(
+            context = getApplication(),
+            versionName = result.manifest.versionName,
+            versionCode = result.manifest.versionCode,
+            releaseNotes = result.manifest.releaseNotes
+          )
         }
       }
     }

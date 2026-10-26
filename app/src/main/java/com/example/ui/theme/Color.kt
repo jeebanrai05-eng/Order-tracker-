@@ -93,6 +93,14 @@ data class LuxuryThemeMeta(
 
 val LUXURY_THEMES = listOf(
   LuxuryThemeMeta(
+    name = "Glass Neo",
+    tagline = "Ultra-Frosted Cyan Glass",
+    iconEmoji = "🧊",
+    primary = Color(0xFF00F5FF),
+    variant = Color(0xFF00B4D8),
+    accent = Color(0xFF80F9FF)
+  ),
+  LuxuryThemeMeta(
     name = "Neon Cyan",
     tagline = "Cyber Aqua Matrix",
     iconEmoji = "⚡",
@@ -162,7 +170,11 @@ data class AppThemeColors(
   val primary: Color,
   val variant: Color,
   val accent: Color,
-  val gradient: Brush
+  val gradient: Brush,
+  val backgroundDark: Color = Color(0xFF070D18),
+  val backgroundGlow: Color = CyanPrimary,
+  val cardBackground: Color = Color(0xFF0A1325),
+  val cardBorder: Color = Color(0xFF00E5FF).copy(alpha = 0.35f)
 )
 
 val LocalAppThemeColors = compositionLocalOf {
@@ -170,7 +182,11 @@ val LocalAppThemeColors = compositionLocalOf {
     primary = CyanPrimary,
     variant = CyanVariant,
     accent = CyanAccent,
-    gradient = Brush.horizontalGradient(listOf(CyanPrimary, CyanVariant))
+    gradient = Brush.horizontalGradient(listOf(CyanPrimary, CyanVariant)),
+    backgroundDark = Color(0xFF070D18),
+    backgroundGlow = CyanPrimary,
+    cardBackground = Color(0xFF0A1325),
+    cardBorder = Color(0xFF00E5FF).copy(alpha = 0.35f)
   )
 }
 
@@ -181,53 +197,95 @@ val MaterialThemeColors: AppThemeColors
 
 fun getThemePalette(themeName: String): AppThemeColors {
   return when (themeName) {
+    "Glass Neo" -> AppThemeColors(
+      primary = Color(0xFF00F5FF),
+      variant = Color(0xFF00B4D8),
+      accent = Color(0xFF80F9FF),
+      gradient = Brush.horizontalGradient(listOf(Color(0xFF00F5FF), Color(0xFF0096C7))),
+      backgroundDark = Color(0xFF040A14),
+      backgroundGlow = Color(0xFF00F5FF),
+      cardBackground = Color(0xFF0A162B).copy(alpha = 0.85f),
+      cardBorder = Color(0xFF00F5FF).copy(alpha = 0.45f)
+    )
     "Mid Purple" -> AppThemeColors(
       primary = PurplePrimary,
       variant = PurpleVariant,
       accent = PurpleAccent,
-      gradient = Brush.horizontalGradient(listOf(PurpleAccent, PurpleDark))
+      gradient = Brush.horizontalGradient(listOf(PurpleAccent, PurpleDark)),
+      backgroundDark = Color(0xFF0C0819),
+      backgroundGlow = PurplePrimary,
+      cardBackground = Color(0xFF140D27),
+      cardBorder = PurplePrimary.copy(alpha = 0.35f)
     )
     "Luxury Gold" -> AppThemeColors(
       primary = GoldPrimary,
       variant = GoldVariant,
       accent = GoldAccent,
-      gradient = Brush.horizontalGradient(listOf(GoldAccent, GoldVariant))
+      gradient = Brush.horizontalGradient(listOf(GoldAccent, GoldVariant)),
+      backgroundDark = Color(0xFF141007),
+      backgroundGlow = GoldPrimary,
+      cardBackground = Color(0xFF1E170A),
+      cardBorder = GoldPrimary.copy(alpha = 0.35f)
     )
     "Imperial Jade" -> AppThemeColors(
       primary = JadePrimary,
       variant = JadeVariant,
       accent = JadeAccent,
-      gradient = Brush.horizontalGradient(listOf(JadeAccent, JadeDark))
+      gradient = Brush.horizontalGradient(listOf(JadeAccent, JadeDark)),
+      backgroundDark = Color(0xFF06140D),
+      backgroundGlow = JadePrimary,
+      cardBackground = Color(0xFF0B1F15),
+      cardBorder = JadePrimary.copy(alpha = 0.35f)
     )
     "Crimson Velvet" -> AppThemeColors(
       primary = CrimsonPrimary,
       variant = CrimsonVariant,
       accent = CrimsonAccent,
-      gradient = Brush.horizontalGradient(listOf(CrimsonAccent, CrimsonDark))
+      gradient = Brush.horizontalGradient(listOf(CrimsonAccent, CrimsonDark)),
+      backgroundDark = Color(0xFF16060A),
+      backgroundGlow = CrimsonPrimary,
+      cardBackground = Color(0xFF220A10),
+      cardBorder = CrimsonPrimary.copy(alpha = 0.35f)
     )
     "Sunset Copper" -> AppThemeColors(
       primary = CopperPrimary,
       variant = CopperVariant,
       accent = CopperAccent,
-      gradient = Brush.horizontalGradient(listOf(CopperAccent, CopperDark))
+      gradient = Brush.horizontalGradient(listOf(CopperAccent, CopperDark)),
+      backgroundDark = Color(0xFF160B05),
+      backgroundGlow = CopperPrimary,
+      cardBackground = Color(0xFF221108),
+      cardBorder = CopperPrimary.copy(alpha = 0.35f)
     )
     "Royal Sapphire" -> AppThemeColors(
       primary = SapphirePrimary,
       variant = SapphireVariant,
       accent = SapphireAccent,
-      gradient = Brush.horizontalGradient(listOf(SapphireAccent, SapphireDark))
+      gradient = Brush.horizontalGradient(listOf(SapphireAccent, SapphireDark)),
+      backgroundDark = Color(0xFF060D1D),
+      backgroundGlow = SapphirePrimary,
+      cardBackground = Color(0xFF0A162E),
+      cardBorder = SapphirePrimary.copy(alpha = 0.35f)
     )
     "Rose Titanium" -> AppThemeColors(
       primary = RosePrimary,
       variant = RoseVariant,
       accent = RoseAccent,
-      gradient = Brush.horizontalGradient(listOf(RoseAccent, RoseDark))
+      gradient = Brush.horizontalGradient(listOf(RoseAccent, RoseDark)),
+      backgroundDark = Color(0xFF170710),
+      backgroundGlow = RosePrimary,
+      cardBackground = Color(0xFF230B19),
+      cardBorder = RosePrimary.copy(alpha = 0.35f)
     )
     else -> AppThemeColors(
       primary = CyanPrimary,
       variant = CyanVariant,
       accent = CyanAccent,
-      gradient = Brush.horizontalGradient(listOf(CyanPrimary, CyanVariant))
+      gradient = Brush.horizontalGradient(listOf(CyanPrimary, CyanVariant)),
+      backgroundDark = Color(0xFF070D18),
+      backgroundGlow = CyanPrimary,
+      cardBackground = Color(0xFF0A1325),
+      cardBorder = Color(0xFF00E5FF).copy(alpha = 0.35f)
     )
   }
 }

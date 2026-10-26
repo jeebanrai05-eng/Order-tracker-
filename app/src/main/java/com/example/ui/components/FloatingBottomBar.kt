@@ -8,6 +8,7 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -29,6 +30,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.testTag
@@ -56,21 +58,21 @@ fun FloatingBottomBar(
     Row(
       modifier = Modifier
         .fillMaxWidth()
-        .height(66.dp)
-        .shadow(16.dp, RoundedCornerShape(33.dp))
-        .clip(RoundedCornerShape(33.dp))
-        .background(BottomBarDark)
+        .height(64.dp)
+        .shadow(16.dp, RoundedCornerShape(32.dp))
+        .clip(RoundedCornerShape(32.dp))
+        .background(Color(0xFF070E1A).copy(alpha = 0.95f))
         .border(
           width = 1.dp,
-          color = Color.White.copy(alpha = 0.12f),
-          shape = RoundedCornerShape(33.dp)
+          color = MaterialThemeColors.cardBorder,
+          shape = RoundedCornerShape(32.dp)
         )
         .padding(horizontal = 8.dp),
       horizontalArrangement = Arrangement.SpaceEvenly,
       verticalAlignment = Alignment.CenterVertically
     ) {
       BottomNavItem(
-        title = "Orders",
+        title = "Home",
         icon = Icons.Default.DateRange,
         selected = currentTab == NavigationTab.ORDERS,
         testTag = "nav_tab_orders",
@@ -102,7 +104,8 @@ private fun BottomNavItem(
   testTag: String,
   onClick: () -> Unit
 ) {
-  val primaryColor = MaterialThemeColors.primary
+  val themeColors = MaterialThemeColors
+  val primaryColor = themeColors.primary
   val targetColor = if (selected) primaryColor else BottomBarItemUnselected
   val animatedColor by animateColorAsState(
     targetValue = targetColor,
@@ -110,31 +113,58 @@ private fun BottomNavItem(
     label = "tab_color"
   )
 
-  val pillBg = if (selected) primaryColor.copy(alpha = 0.16f) else Color.Transparent
-
-  Row(
-    modifier = Modifier
-      .testTag(testTag)
-      .clip(RoundedCornerShape(20.dp))
-      .background(pillBg)
-      .clickable(onClick = onClick)
-      .padding(horizontal = 16.dp, vertical = 10.dp),
-    verticalAlignment = Alignment.CenterVertically,
-    horizontalArrangement = Arrangement.Center
-  ) {
-    Icon(
-      imageVector = icon,
-      contentDescription = title,
-      tint = animatedColor,
-      modifier = Modifier.size(22.dp)
-    )
-    if (selected) {
+  if (selected) {
+    Row(
+      modifier = Modifier
+        .testTag(testTag)
+        .clip(RoundedCornerShape(20.dp))
+        .background(
+          Brush.horizontalGradient(
+            listOf(primaryColor.copy(alpha = 0.28f), themeColors.variant.copy(alpha = 0.16f))
+          )
+        )
+        .border(1.2.dp, primaryColor.copy(alpha = 0.85f), RoundedCornerShape(20.dp))
+        .clickable(onClick = onClick)
+        .padding(horizontal = 18.dp, vertical = 8.dp),
+      verticalAlignment = Alignment.CenterVertically,
+      horizontalArrangement = Arrangement.Center
+    ) {
+      Icon(
+        imageVector = icon,
+        contentDescription = title,
+        tint = primaryColor,
+        modifier = Modifier.size(20.dp)
+      )
       Spacer(modifier = Modifier.width(6.dp))
       Text(
         text = title,
-        color = animatedColor,
+        color = primaryColor,
         fontSize = 13.sp,
-        fontWeight = FontWeight.Bold
+        fontWeight = FontWeight.ExtraBold
+      )
+    }
+  } else {
+    Column(
+      modifier = Modifier
+        .testTag(testTag)
+        .clip(RoundedCornerShape(12.dp))
+        .clickable(onClick = onClick)
+        .padding(horizontal = 12.dp, vertical = 6.dp),
+      horizontalAlignment = Alignment.CenterHorizontally,
+      verticalArrangement = Arrangement.Center
+    ) {
+      Icon(
+        imageVector = icon,
+        contentDescription = title,
+        tint = animatedColor,
+        modifier = Modifier.size(18.dp)
+      )
+      Spacer(modifier = Modifier.height(2.dp))
+      Text(
+        text = title,
+        color = animatedColor,
+        fontSize = 11.sp,
+        fontWeight = FontWeight.Medium
       )
     }
   }

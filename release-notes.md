@@ -1,16 +1,16 @@
-## Order Tracker 1.0.5 (Build 5)
+## Order Tracker 2.0.5 (Build 6)
 
 ### Release Information
-* **Version Name:** 1.0.5
-* **Version Code:** 5
+* **Version Name:** 2.0.5
+* **Version Code:** 6
 * **Package Name:** com.ordercom
-* **Release Date:** 2026-10-25
-* **File Size:** 19.65 MB (20603063 bytes)
+* **Release Date:** 2026-10-26
+* **File Size:** 19.68 MB (20635831 bytes)
 
 ### Security Verification
 * **APK SHA-256 Checksum:**
   ```
-  7964c71aa23bd25e305fe99d6f1217571a5fbbbe1cae6767897d34e4773fd0e3
+  3a1f32dd3a938c9b3fbe634ff7710dc5e53e45de5c74d2904f99e62a202cad37
   ```
 * **Signing Certificate SHA-256 Fingerprint:**
   ```
@@ -18,7 +18,7 @@
   ```
 
 ### Changelog:
-Release v1.0.5: Duty End Reminder Notifications, 8 Ultra-Luxury Themes & Theme Studio, and Silky Smooth Animations.
+Release v2.0.5: Ultra-Frosted Glass Neo Theme, Redesigned Themed Orders Dashboard with Target Progress & Filter Chips, Fully Themed Top and Bottom Bars, and System Update Notifications.
 
 ---
 *Verified and generated with automated cryptographic self-update manifest.*

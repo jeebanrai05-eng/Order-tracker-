@@ -132,9 +132,10 @@ fun UniversalAppTopBar(
 
   Surface(
     modifier = modifier.fillMaxWidth(),
-    color = MaterialTheme.colorScheme.surface,
+    color = themeColors.cardBackground,
     tonalElevation = 3.dp,
-    shadowElevation = 4.dp
+    shadowElevation = 4.dp,
+    border = BorderStroke(1.dp, themeColors.cardBorder.copy(alpha = 0.4f))
   ) {
     Column(
       modifier = Modifier
@@ -164,11 +165,9 @@ fun UniversalAppTopBar(
               .shadow(2.dp, RoundedCornerShape(12.dp)),
             contentAlignment = Alignment.Center
           ) {
-            Icon(
-              imageVector = Icons.Default.LocalShipping,
-              contentDescription = "Order Tracker Logo",
-              tint = Color.Black,
-              modifier = Modifier.size(22.dp)
+            Text(
+              text = "🚚",
+              fontSize = 20.sp
             )
           }
 
@@ -179,7 +178,7 @@ fun UniversalAppTopBar(
               text = "Order Tracker",
               fontSize = 16.sp,
               fontWeight = FontWeight.ExtraBold,
-              color = MaterialTheme.colorScheme.onSurface,
+              color = Color.White,
               letterSpacing = (-0.3).sp
             )
 
@@ -364,11 +363,11 @@ fun UniversalAppTopBar(
           .testTag("card_today_highlight"),
         shape = RoundedCornerShape(14.dp),
         colors = CardDefaults.cardColors(
-          containerColor = if (settings.isDarkMode) Color(0xFF162032) else Color(0xFFEFF6FF)
+          containerColor = themeColors.cardBackground
         ),
         border = BorderStroke(
-          1.dp,
-          if (settings.isDarkMode) CyanDark.copy(alpha = 0.4f) else CyanPrimary.copy(alpha = 0.35f)
+          1.2.dp,
+          themeColors.cardBorder
         )
       ) {
         Row(

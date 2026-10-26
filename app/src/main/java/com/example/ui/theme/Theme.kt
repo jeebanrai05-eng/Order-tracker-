@@ -37,12 +37,36 @@ fun OrderTrackerTheme(
     animationSpec = tween(durationMillis = 400, easing = FastOutSlowInEasing),
     label = "animAccent"
   )
+  val animatedBgDark by animateColorAsState(
+    targetValue = targetPalette.backgroundDark,
+    animationSpec = tween(durationMillis = 400, easing = FastOutSlowInEasing),
+    label = "animBgDark"
+  )
+  val animatedBgGlow by animateColorAsState(
+    targetValue = targetPalette.backgroundGlow,
+    animationSpec = tween(durationMillis = 400, easing = FastOutSlowInEasing),
+    label = "animBgGlow"
+  )
+  val animatedCardBg by animateColorAsState(
+    targetValue = targetPalette.cardBackground,
+    animationSpec = tween(durationMillis = 400, easing = FastOutSlowInEasing),
+    label = "animCardBg"
+  )
+  val animatedCardBorder by animateColorAsState(
+    targetValue = targetPalette.cardBorder,
+    animationSpec = tween(durationMillis = 400, easing = FastOutSlowInEasing),
+    label = "animCardBorder"
+  )
 
   val animatedPalette = AppThemeColors(
     primary = animatedPrimary,
     variant = animatedVariant,
     accent = animatedAccent,
-    gradient = Brush.horizontalGradient(listOf(animatedPrimary, animatedVariant))
+    gradient = Brush.horizontalGradient(listOf(animatedPrimary, animatedVariant)),
+    backgroundDark = animatedBgDark,
+    backgroundGlow = animatedBgGlow,
+    cardBackground = animatedCardBg,
+    cardBorder = animatedCardBorder
   )
 
   val colorScheme = if (darkTheme) {
@@ -50,14 +74,14 @@ fun OrderTrackerTheme(
       primary = animatedPrimary,
       secondary = animatedVariant,
       tertiary = ProfitGreen,
-      background = BackgroundDark,
-      surface = SurfaceDark,
-      surfaceVariant = SurfaceCardDark,
+      background = animatedBgDark,
+      surface = animatedCardBg,
+      surfaceVariant = animatedCardBg,
       onPrimary = Color.Black,
       onSecondary = Color.White,
       onBackground = TextPrimaryDark,
       onSurface = TextPrimaryDark,
-      outline = BorderDark
+      outline = animatedCardBorder
     )
   } else {
     lightColorScheme(

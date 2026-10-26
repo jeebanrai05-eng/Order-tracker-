@@ -1,6 +1,7 @@
 package com.example.ui.components
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -78,20 +79,21 @@ fun MonthSelectorHeader(
     verticalAlignment = Alignment.CenterVertically
   ) {
     // Left circular button
-    IconButton(
-      onClick = onPreviousMonth,
+    Box(
       modifier = Modifier
         .testTag("btn_prev_month")
-        .size(44.dp)
-        .shadow(6.dp, CircleShape)
+        .size(42.dp)
         .clip(CircleShape)
-        .background(MaterialTheme.colorScheme.surface)
+        .background(themeColors.cardBackground)
+        .border(1.2.dp, themeColors.cardBorder, CircleShape)
+        .clickable(onClick = onPreviousMonth),
+      contentAlignment = Alignment.Center
     ) {
       Icon(
         imageVector = Icons.AutoMirrored.Filled.KeyboardArrowLeft,
         contentDescription = "Previous Month",
         tint = themeColors.primary,
-        modifier = Modifier.size(26.dp)
+        modifier = Modifier.size(24.dp)
       )
     }
 
@@ -101,23 +103,31 @@ fun MonthSelectorHeader(
         modifier = Modifier
           .testTag("btn_select_month_dialog")
           .clip(RoundedCornerShape(14.dp))
-          .background(MaterialTheme.colorScheme.surface.copy(alpha = 0.8f))
+          .background(themeColors.cardBackground)
+          .border(1.2.dp, themeColors.cardBorder, RoundedCornerShape(14.dp))
           .clickable { showPicker = true }
-          .padding(horizontal = 14.dp, vertical = 6.dp),
+          .padding(horizontal = 12.dp, vertical = 7.dp),
         verticalAlignment = Alignment.CenterVertically
       ) {
+        Icon(
+          imageVector = Icons.Default.Today,
+          contentDescription = null,
+          tint = themeColors.primary,
+          modifier = Modifier.size(18.dp)
+        )
+        Spacer(modifier = Modifier.width(8.dp))
         Text(
           text = "$monthName $year",
-          fontSize = 20.sp,
-          fontWeight = FontWeight.Bold,
-          color = MaterialTheme.colorScheme.onBackground
+          fontSize = 17.sp,
+          fontWeight = FontWeight.ExtraBold,
+          color = Color.White
         )
         Spacer(modifier = Modifier.width(4.dp))
         Icon(
           imageVector = Icons.Default.ArrowDropDown,
           contentDescription = "Select Month",
           tint = themeColors.primary,
-          modifier = Modifier.size(24.dp)
+          modifier = Modifier.size(22.dp)
         )
       }
 
@@ -127,24 +137,28 @@ fun MonthSelectorHeader(
           modifier = Modifier
             .testTag("btn_jump_today")
             .clip(RoundedCornerShape(12.dp))
-            .background(if (isCurrentMonth) themeColors.primary.copy(alpha = 0.15f) else themeColors.primary)
+            .background(
+              androidx.compose.ui.graphics.Brush.horizontalGradient(
+                listOf(themeColors.primary, themeColors.variant)
+              )
+            )
             .clickable(onClick = onTodayClick)
-            .padding(horizontal = 10.dp, vertical = 6.dp),
+            .padding(horizontal = 12.dp, vertical = 8.dp),
           contentAlignment = Alignment.Center
         ) {
           Row(verticalAlignment = Alignment.CenterVertically) {
             Icon(
               imageVector = Icons.Default.Today,
               contentDescription = null,
-              tint = if (isCurrentMonth) themeColors.primary else Color.Black,
+              tint = Color.Black,
               modifier = Modifier.size(14.dp)
             )
             Spacer(modifier = Modifier.width(4.dp))
             Text(
               text = "TODAY",
               fontSize = 11.sp,
-              fontWeight = FontWeight.ExtraBold,
-              color = if (isCurrentMonth) themeColors.primary else Color.Black
+              fontWeight = FontWeight.Black,
+              color = Color.Black
             )
           }
         }
@@ -152,20 +166,21 @@ fun MonthSelectorHeader(
     }
 
     // Right circular button
-    IconButton(
-      onClick = onNextMonth,
+    Box(
       modifier = Modifier
         .testTag("btn_next_month")
-        .size(44.dp)
-        .shadow(6.dp, CircleShape)
+        .size(42.dp)
         .clip(CircleShape)
-        .background(MaterialTheme.colorScheme.surface)
+        .background(themeColors.cardBackground)
+        .border(1.2.dp, themeColors.cardBorder, CircleShape)
+        .clickable(onClick = onNextMonth),
+      contentAlignment = Alignment.Center
     ) {
       Icon(
         imageVector = Icons.AutoMirrored.Filled.KeyboardArrowRight,
         contentDescription = "Next Month",
         tint = themeColors.primary,
-        modifier = Modifier.size(26.dp)
+        modifier = Modifier.size(24.dp)
       )
     }
   }
