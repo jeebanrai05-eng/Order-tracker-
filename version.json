@@ -8,5 +8,5 @@
   "certSha256": "2523424FDCA4A6EFAF07756779949EF531C579219488036E19426ADB5DFA9B95",
   "releaseNotes": "Release v1.0.4: Google Sign-In setup instructions, SHA-1 registration guidance, and self-update.",
   "releaseDate": "2026-10-26",
-  "isMandatory": false
+  "isMandatory": true
 }
