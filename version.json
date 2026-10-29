@@ -4,7 +4,7 @@
   "packageName": "com.ordercom",
   "downloadUrl": "https://github.com/jeebanrai05-eng/Order-tracker-/releases/download/v1.0.4/app-release.apk",
   "fileSize": 20648767,
-  "sha256": "a2125f4a0cfd412cc0117ddd6277adff054fa9dd0e59a1813f47a577b48deacf",
+  "sha256": "434dc1131b30fb3955c88c2f1159e751ed6aad056fc1c5356b4b50bb749add01",
   "certSha256": "2523424FDCA4A6EFAF07756779949EF531C579219488036E19426ADB5DFA9B95",
   "releaseNotes": "Release v1.0.4: Google Sign-In setup instructions, SHA-1 registration guidance, and self-update.",
   "releaseDate": "2026-10-29",
