@@ -82,7 +82,7 @@ jobs:
 
       # Step 5: Run Automated Unit & Robolectric Tests
       - name: Run Tests
-        run: ./gradlew testDebugUnitTest --no-daemon -Djava.awt.headless=true
+        run: ./gradlew testDebugUnitTest --no-daemon --no-configuration-cache -Djava.awt.headless=true
 
       # Step 6: Build Signed Production APK
       - name: Build Signed Production APK
@@ -91,7 +91,7 @@ jobs:
           STORE_PASSWORD: ${{ secrets.RELEASE_STORE_PASSWORD }}
           KEY_ALIAS: ${{ secrets.RELEASE_KEY_ALIAS || 'upload' }}
           KEY_PASSWORD: ${{ secrets.RELEASE_KEY_PASSWORD }}
-        run: ./gradlew assembleRelease --no-daemon -Djava.awt.headless=true
+        run: ./gradlew assembleRelease --no-daemon --no-configuration-cache -Djava.awt.headless=true
 
       # Step 7: Strict Release Verification & Manifest Generation
       - name: Verify Signed APK & Generate Update Manifest

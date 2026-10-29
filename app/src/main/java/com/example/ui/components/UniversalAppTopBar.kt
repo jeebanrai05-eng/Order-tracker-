@@ -142,49 +142,64 @@ fun UniversalAppTopBar(
       modifier = Modifier
         .fillMaxWidth()
         .statusBarsPadding() // Ensures proper space under battery, WiFi, clock & notification icons
-        .padding(horizontal = 14.dp, vertical = 6.dp)
+        .padding(horizontal = 12.dp, vertical = 6.dp)
     ) {
       Row(
         modifier = Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically
       ) {
-        // --- 1. Left: Brand & Live Cloud Status ---
+        // --- 1. Left: Brand & Live Cloud Status (Guaranteed priority and single-line non-wrapping) ---
         Row(
           verticalAlignment = Alignment.CenterVertically,
-          modifier = Modifier.weight(1f, fill = false)
+          modifier = Modifier.weight(1f)
         ) {
           Box(
             modifier = Modifier
-              .size(38.dp)
-              .clip(RoundedCornerShape(12.dp))
+              .size(36.dp)
+              .clip(RoundedCornerShape(10.dp))
               .background(
                 Brush.linearGradient(
                   listOf(themeColors.primary, themeColors.variant)
                 )
               )
-              .shadow(2.dp, RoundedCornerShape(12.dp)),
+              .shadow(2.dp, RoundedCornerShape(10.dp)),
             contentAlignment = Alignment.Center
           ) {
             Text(
               text = "🚚",
-              fontSize = 20.sp
+              fontSize = 18.sp
             )
           }
 
-          Spacer(modifier = Modifier.width(10.dp))
+          Spacer(modifier = Modifier.width(8.dp))
 
-          Column {
+          Column(modifier = Modifier.weight(1f, fill = false)) {
             Text(
               text = "Order Tracker",
-              fontSize = 16.sp,
-              fontWeight = FontWeight.ExtraBold,
+              fontSize = 15.sp,
+              fontWeight = FontWeight.Black,
               color = themeColors.textPrimary,
-              letterSpacing = (-0.3).sp
+              letterSpacing = (-0.3).sp,
+              maxLines = 1,
+              softWrap = false,
+              overflow = TextOverflow.Ellipsis
             )
 
-            // Cloud Status pill
-            Row(verticalAlignment = Alignment.CenterVertically) {
+            // Interactive Cloud Status pill (tap to sync)
+            Row(
+              verticalAlignment = Alignment.CenterVertically,
+              modifier = Modifier
+                .clip(RoundedCornerShape(6.dp))
+                .clickable {
+                  if (authState is AuthUiState.LoggedIn) {
+                    viewModel.syncCloudData()
+                  } else {
+                    onOpenAuthDialog()
+                  }
+                }
+                .padding(vertical = 1.dp)
+            ) {
               val statusColor = when {
                 isSyncing -> CyanAccent
                 authState is AuthUiState.LoggedIn -> ProfitGreen
@@ -203,20 +218,23 @@ fun UniversalAppTopBar(
                   authState is AuthUiState.LoggedIn -> "Cloud Synced"
                   else -> "Local Mode"
                 },
-                fontSize = 11.sp,
-                fontWeight = FontWeight.Medium,
-                color = themeColors.textSecondary
+                fontSize = 10.5.sp,
+                fontWeight = FontWeight.SemiBold,
+                color = themeColors.textSecondary,
+                maxLines = 1,
+                softWrap = false,
+                overflow = TextOverflow.Ellipsis
               )
             }
           }
         }
 
-        Spacer(modifier = Modifier.width(8.dp))
+        Spacer(modifier = Modifier.width(6.dp))
 
-        // --- 2. Right: Action Icons & Profile ---
+        // --- 2. Right: Quick Action Icons & Profile ---
         Row(
           verticalAlignment = Alignment.CenterVertically,
-          horizontalArrangement = Arrangement.spacedBy(4.dp)
+          horizontalArrangement = Arrangement.spacedBy(2.dp)
         ) {
           // Manual Cloud Sync Button
           IconButton(
@@ -228,7 +246,7 @@ fun UniversalAppTopBar(
               }
             },
             modifier = Modifier
-              .size(36.dp)
+              .size(32.dp)
               .testTag("btn_top_sync")
           ) {
             if (isSyncing) {
@@ -237,7 +255,7 @@ fun UniversalAppTopBar(
                 contentDescription = "Syncing",
                 tint = themeColors.primary,
                 modifier = Modifier
-                  .size(20.dp)
+                  .size(18.dp)
                   .rotate(syncRotation)
               )
             } else {
@@ -245,7 +263,7 @@ fun UniversalAppTopBar(
                 imageVector = if (authState is AuthUiState.LoggedIn) Icons.Default.CloudDone else Icons.Default.Sync,
                 contentDescription = "Sync Status",
                 tint = if (authState is AuthUiState.LoggedIn) ProfitGreen else MaterialTheme.colorScheme.onSurfaceVariant,
-                modifier = Modifier.size(20.dp)
+                modifier = Modifier.size(18.dp)
               )
             }
           }
@@ -254,14 +272,14 @@ fun UniversalAppTopBar(
           IconButton(
             onClick = { viewModel.openThemeStudio() },
             modifier = Modifier
-              .size(36.dp)
+              .size(32.dp)
               .testTag("btn_top_theme_studio")
           ) {
             Icon(
               imageVector = Icons.Default.Palette,
               contentDescription = "Theme Studio",
               tint = themeColors.primary,
-              modifier = Modifier.size(20.dp)
+              modifier = Modifier.size(18.dp)
             )
           }
 
@@ -269,103 +287,89 @@ fun UniversalAppTopBar(
           IconButton(
             onClick = { viewModel.setDarkMode(!settings.isDarkMode) },
             modifier = Modifier
-              .size(36.dp)
+              .size(32.dp)
               .testTag("btn_toggle_dark_mode")
           ) {
             Icon(
               imageVector = if (settings.isDarkMode) Icons.Default.LightMode else Icons.Default.DarkMode,
               contentDescription = "Toggle Theme",
               tint = if (settings.isDarkMode) GoldYellow else MaterialTheme.colorScheme.onSurface,
-              modifier = Modifier.size(20.dp)
+              modifier = Modifier.size(18.dp)
             )
           }
 
-          // User Profile / Sign In Pill Button
+          // User Profile / Sign In Button
           when (val currentAuth = authState) {
             is AuthUiState.LoggedIn -> {
               Row(
                 verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(4.dp)
+                horizontalArrangement = Arrangement.spacedBy(2.dp)
               ) {
-                // User avatar pill
+                // Compact Circular User Avatar (32dp circle with letter and sleek border)
                 Box(
                   modifier = Modifier
-                    .clip(RoundedCornerShape(20.dp))
-                    .background(themeColors.primary.copy(alpha = 0.15f))
-                    .border(1.dp, themeColors.primary.copy(alpha = 0.4f), RoundedCornerShape(20.dp))
+                    .size(32.dp)
+                    .clip(CircleShape)
+                    .background(themeColors.primary.copy(alpha = 0.2f))
+                    .border(1.5.dp, themeColors.primary, CircleShape)
                     .clickable { onOpenAuthDialog() }
-                    .padding(horizontal = 10.dp, vertical = 5.dp)
                     .testTag("btn_top_profile"),
                   contentAlignment = Alignment.Center
                 ) {
-                  Row(verticalAlignment = Alignment.CenterVertically) {
-                    Box(
-                      modifier = Modifier
-                        .size(20.dp)
-                        .clip(CircleShape)
-                        .background(themeColors.primary),
-                      contentAlignment = Alignment.Center
-                    ) {
-                      val initial = currentAuth.displayName.firstOrNull()?.uppercase()
-                        ?: currentAuth.email.firstOrNull()?.uppercase()
-                        ?: "U"
-                      Text(
-                        text = initial,
-                        fontSize = 11.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = Color.Black
-                      )
-                    }
-                    Spacer(modifier = Modifier.width(6.dp))
-                    Text(
-                      text = "Account",
-                      fontSize = 12.sp,
-                      fontWeight = FontWeight.Bold,
-                      color = themeColors.textPrimary
-                    )
-                  }
+                  val initial = currentAuth.displayName.firstOrNull()?.uppercase()
+                    ?: currentAuth.email.firstOrNull()?.uppercase()
+                    ?: "U"
+                  Text(
+                    text = initial,
+                    fontSize = 13.sp,
+                    fontWeight = FontWeight.Black,
+                    color = themeColors.textPrimary
+                  )
                 }
 
                 // Explicit 1-tap Logout icon button
                 IconButton(
                   onClick = { viewModel.logout() },
                   modifier = Modifier
-                    .size(32.dp)
+                    .size(30.dp)
                     .testTag("btn_top_logout")
                 ) {
                   Icon(
                     imageVector = Icons.AutoMirrored.Filled.ExitToApp,
                     contentDescription = "Log Out",
                     tint = WarningRed,
-                    modifier = Modifier.size(19.dp)
+                    modifier = Modifier.size(18.dp)
                   )
                 }
               }
             }
             is AuthUiState.LoggedOut -> {
-              // Sign In Button
+              // Compact Sign In Button
               Box(
                 modifier = Modifier
-                  .clip(RoundedCornerShape(20.dp))
+                  .height(30.dp)
+                  .clip(RoundedCornerShape(15.dp))
                   .background(
                     Brush.horizontalGradient(
                       listOf(themeColors.primary, themeColors.variant)
                     )
                   )
-                  .border(1.dp, themeColors.primary, RoundedCornerShape(20.dp))
+                  .border(1.dp, themeColors.primary, RoundedCornerShape(15.dp))
                   .clickable { onOpenAuthDialog() }
-                  .padding(horizontal = 12.dp, vertical = 6.dp)
+                  .padding(horizontal = 10.dp)
                   .testTag("btn_top_login"),
                 contentAlignment = Alignment.Center
               ) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                  GoogleLogoIcon(size = 14.dp)
-                  Spacer(modifier = Modifier.width(6.dp))
+                  GoogleLogoIcon(size = 13.dp)
+                  Spacer(modifier = Modifier.width(4.dp))
                   Text(
                     text = "Sign In",
-                    fontSize = 12.sp,
+                    fontSize = 11.sp,
                     fontWeight = FontWeight.ExtraBold,
-                    color = Color.Black
+                    color = Color.Black,
+                    maxLines = 1,
+                    softWrap = false
                   )
                 }
               }

@@ -10,7 +10,7 @@
 ### Security Verification
 * **APK SHA-256 Checksum:**
   ```
-  65d1d5df83dc4110e1a24a4fa564e1874b263b887c45c0ceb8ead59183b59136
+  30927a33d85cd567261f4506c815ba6ef149b36de37a9d36bcffd4a5c795548a
   ```
 * **Signing Certificate SHA-256 Fingerprint:**
   ```
@@ -18,7 +18,7 @@
   ```
 
 ### Changelog:
-Release v2.0.7: Fix order fill boxes screen coverage, high-contrast Log In and 1-tap Red Log Out buttons, front-and-center Notification Time Management with 1-tap quick presets (8PM, 9PM, 10PM, 11PM, 12AM), and full white mode readability.
+Release v2.0.7: Responsive Top Bar layout fix for Realme 60x and compact devices, clean single-line non-wrapping titles, compact account avatar, empty order placeholder fix, and KSP headless build stabilization.
 
 ---
 *Verified and generated with automated cryptographic self-update manifest.*

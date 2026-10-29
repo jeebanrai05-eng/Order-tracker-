@@ -795,7 +795,7 @@ private fun NeonOrderDayCard(
           Text(text = "🛍️", fontSize = 12.sp)
           Spacer(modifier = Modifier.width(5.dp))
           Text(
-            text = if (hasOrders) "${record?.orders}" else "Ord",
+            text = if (hasOrders) "${record?.orders}" else "--",
             fontSize = 14.sp,
             fontWeight = if (hasOrders) FontWeight.Bold else FontWeight.Medium,
             color = if (hasOrders) themeColors.textPrimary else themeColors.textMuted
