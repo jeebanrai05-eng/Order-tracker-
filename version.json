@@ -1,12 +1,12 @@
 {
-  "versionCode": 6,
-  "versionName": "2.0.5",
+  "versionCode": 7,
+  "versionName": "2.0.6",
   "packageName": "com.ordercom",
-  "downloadUrl": "https://github.com/jeebanrai05-eng/Order-tracker-/releases/download/v1.0.4/app-release.apk",
-  "fileSize": 20632383,
-  "sha256": "9edbf7e87201afd8ea85cbd9999a646547272f0cf457be79d77120da0e2745d4",
+  "downloadUrl": "https://github.com/jeebanrai05-eng/Order-tracker-/releases/download/v2.0.6/app-release.apk",
+  "fileSize": 20652215,
+  "sha256": "b218233cb3b31224b5cd0d47e6fd915f21e7f095e4e1801f32eef4d7d125fed3",
   "certSha256": "2523424FDCA4A6EFAF07756779949EF531C579219488036E19426ADB5DFA9B95",
-  "releaseNotes": "Release v1.0.4: Google Sign-In setup, SHA-1 fingerprint registration, and self-update.",
-  "releaseDate": "2026-10-26",
+  "releaseNotes": "Release v2.0.6: Pure White Mode theme overhaul, Worldwide Currencies (40+ nations with emoji flags), 1-Tap Auto-Detect Country & Currency, top/bottom bar theme consistency, and verified cryptographic signature update.",
+  "releaseDate": "2026-10-29",
   "isMandatory": false
 }

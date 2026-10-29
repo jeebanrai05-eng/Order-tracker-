@@ -178,7 +178,7 @@ fun UniversalAppTopBar(
               text = "Order Tracker",
               fontSize = 16.sp,
               fontWeight = FontWeight.ExtraBold,
-              color = Color.White,
+              color = themeColors.textPrimary,
               letterSpacing = (-0.3).sp
             )
 
@@ -204,7 +204,7 @@ fun UniversalAppTopBar(
                 },
                 fontSize = 11.sp,
                 fontWeight = FontWeight.Medium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
+                color = themeColors.textSecondary
               )
             }
           }
@@ -414,7 +414,7 @@ fun UniversalAppTopBar(
                   text = "• $dateFormatted",
                   fontSize = 12.sp,
                   fontWeight = FontWeight.Medium,
-                  color = MaterialTheme.colorScheme.onSurfaceVariant
+                  color = themeColors.textSecondary
                 )
               }
               Text(
@@ -425,7 +425,7 @@ fun UniversalAppTopBar(
                 },
                 fontSize = 12.sp,
                 fontWeight = FontWeight.SemiBold,
-                color = MaterialTheme.colorScheme.onSurface,
+                color = themeColors.textPrimary,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis
               )

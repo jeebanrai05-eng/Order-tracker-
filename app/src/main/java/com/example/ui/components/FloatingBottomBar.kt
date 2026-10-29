@@ -55,16 +55,24 @@ fun FloatingBottomBar(
       .padding(horizontal = 20.dp, vertical = 10.dp),
     contentAlignment = Alignment.Center
   ) {
+    val themeColors = MaterialThemeColors
+    val barBackground = themeColors.bottomBarBackground.copy(alpha = 0.96f)
+
     Row(
       modifier = Modifier
         .fillMaxWidth()
         .height(64.dp)
-        .shadow(16.dp, RoundedCornerShape(32.dp))
+        .shadow(
+          elevation = if (themeColors.isDark) 16.dp else 8.dp,
+          shape = RoundedCornerShape(32.dp),
+          ambientColor = if (themeColors.isDark) Color.Black else themeColors.primary.copy(alpha = 0.2f),
+          spotColor = if (themeColors.isDark) Color.Black else themeColors.primary.copy(alpha = 0.25f)
+        )
         .clip(RoundedCornerShape(32.dp))
-        .background(Color(0xFF070E1A).copy(alpha = 0.95f))
+        .background(barBackground)
         .border(
           width = 1.dp,
-          color = MaterialThemeColors.cardBorder,
+          color = themeColors.cardBorder,
           shape = RoundedCornerShape(32.dp)
         )
         .padding(horizontal = 8.dp),
@@ -106,7 +114,8 @@ private fun BottomNavItem(
 ) {
   val themeColors = MaterialThemeColors
   val primaryColor = themeColors.primary
-  val targetColor = if (selected) primaryColor else BottomBarItemUnselected
+  val unselectedColor = if (themeColors.isDark) Color(0xFF94A3B8) else Color(0xFF64748B)
+  val targetColor = if (selected) primaryColor else unselectedColor
   val animatedColor by animateColorAsState(
     targetValue = targetColor,
     animationSpec = spring(stiffness = Spring.StiffnessMediumLow),
@@ -120,10 +129,10 @@ private fun BottomNavItem(
         .clip(RoundedCornerShape(20.dp))
         .background(
           Brush.horizontalGradient(
-            listOf(primaryColor.copy(alpha = 0.28f), themeColors.variant.copy(alpha = 0.16f))
+            listOf(primaryColor.copy(alpha = if (themeColors.isDark) 0.28f else 0.16f), themeColors.variant.copy(alpha = if (themeColors.isDark) 0.16f else 0.10f))
           )
         )
-        .border(1.2.dp, primaryColor.copy(alpha = 0.85f), RoundedCornerShape(20.dp))
+        .border(1.2.dp, primaryColor.copy(alpha = if (themeColors.isDark) 0.85f else 0.5f), RoundedCornerShape(20.dp))
         .clickable(onClick = onClick)
         .padding(horizontal = 18.dp, vertical = 8.dp),
       verticalAlignment = Alignment.CenterVertically,
@@ -138,7 +147,7 @@ private fun BottomNavItem(
       Spacer(modifier = Modifier.width(6.dp))
       Text(
         text = title,
-        color = primaryColor,
+        color = if (themeColors.isDark) primaryColor else themeColors.textPrimary,
         fontSize = 13.sp,
         fontWeight = FontWeight.ExtraBold
       )
@@ -164,7 +173,7 @@ private fun BottomNavItem(
         text = title,
         color = animatedColor,
         fontSize = 11.sp,
-        fontWeight = FontWeight.Medium
+        fontWeight = FontWeight.SemiBold
       )
     }
   }

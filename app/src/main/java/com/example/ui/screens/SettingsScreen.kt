@@ -38,11 +38,14 @@ import androidx.compose.material.icons.filled.Mail
 import androidx.compose.material.icons.filled.MoreHoriz
 import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.Save
+import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Security
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.SystemUpdate
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
+import com.example.data.CurrencyRegistry
+import com.example.data.CountryCurrency
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -115,8 +118,9 @@ fun SettingsScreen(
 
   // Salary configuration fields
   var currencyInput by remember(settings.currency) { mutableStateOf(settings.currency) }
-  var showCurrencyDropdown by remember { mutableStateOf(false) }
-  val availableCurrencies = listOf("K.D.", "USD ($)", "EUR (€)", "GBP (£)", "SAR", "AED", "QAR", "OMR", "BHD", "NPR (Rs.)", "INR (₹)")
+  var showWorldwideCurrencyDialog by remember { mutableStateOf(false) }
+  var currencySearchQuery by remember { mutableStateOf("") }
+  var autoDetectedCountryName by remember { mutableStateOf<String?>(null) }
 
   var baseSalaryInput by remember(settings.baseSalary) {
     mutableStateOf(if (settings.baseSalary > 0) String.format("%.3f", settings.baseSalary) else "0.000")
@@ -241,14 +245,14 @@ fun SettingsScreen(
             text = "Settings",
             fontSize = 28.sp,
             fontWeight = FontWeight.ExtraBold,
-            color = Color.White,
+            color = currentThemeColors.textPrimary,
             letterSpacing = (-0.5).sp
           )
           Spacer(modifier = Modifier.height(2.dp))
           Text(
             text = "Manage your preferences and data",
             fontSize = 13.sp,
-            color = Color(0xFF94A3B8)
+            color = currentThemeColors.textSecondary
           )
         }
       }
@@ -932,55 +936,97 @@ fun SettingsScreen(
               text = "Salary Configuration",
               fontSize = 15.sp,
               fontWeight = FontWeight.Bold,
-              color = Color.White
+              color = currentThemeColors.textPrimary
             )
           }
 
-          Spacer(modifier = Modifier.height(16.dp))
+          Spacer(modifier = Modifier.height(14.dp))
+
+          // ⚡ 1-Tap Auto-Detect Country & Currency Button
+          Box(
+            modifier = Modifier
+              .fillMaxWidth()
+              .clip(RoundedCornerShape(14.dp))
+              .background(
+                Brush.horizontalGradient(
+                  if (currentThemeColors.isDark) {
+                    listOf(currentThemeColors.primary.copy(alpha = 0.18f), currentThemeColors.variant.copy(alpha = 0.28f))
+                  } else {
+                    listOf(currentThemeColors.primary.copy(alpha = 0.12f), currentThemeColors.variant.copy(alpha = 0.18f))
+                  }
+                )
+              )
+              .border(1.2.dp, currentThemeColors.primary, RoundedCornerShape(14.dp))
+              .clickable {
+                val detected = viewModel.detectAndApplyCurrency()
+                currencyInput = detected.currencyCode
+                autoDetectedCountryName = "${detected.flagEmoji} ${detected.countryName}"
+                scope.launch {
+                  viewModel.showSnackbar("🌍 Detected ${detected.flagEmoji} ${detected.countryName} (${detected.currencyCode})")
+                }
+              }
+              .padding(horizontal = 14.dp, vertical = 11.dp)
+              .testTag("btn_auto_detect_currency")
+          ) {
+            Row(
+              verticalAlignment = Alignment.CenterVertically,
+              horizontalArrangement = Arrangement.Center,
+              modifier = Modifier.fillMaxWidth()
+            ) {
+              Text(text = "⚡", fontSize = 16.sp)
+              Spacer(modifier = Modifier.width(8.dp))
+              Text(
+                text = if (autoDetectedCountryName != null) {
+                  "Detected: $autoDetectedCountryName"
+                } else {
+                  "Auto-Detect Country & Currency 🌍"
+                },
+                fontSize = 13.sp,
+                fontWeight = FontWeight.ExtraBold,
+                color = currentThemeColors.primary
+              )
+            }
+          }
+
+          Spacer(modifier = Modifier.height(14.dp))
 
           // 2-Column Grid: Currency & Base Salary
           Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.spacedBy(12.dp)
           ) {
-            // Currency Dropdown Box
+            // Worldwide Currency Selector Box
+            val resolvedCurrency = remember(currencyInput) { CurrencyRegistry.resolveCurrency(currencyInput) }
             Box(modifier = Modifier.weight(1f)) {
               Column {
-                Text("Currency", fontSize = 11.sp, color = Color(0xFF94A3B8), fontWeight = FontWeight.SemiBold)
+                Text("Currency", fontSize = 11.sp, color = currentThemeColors.textSecondary, fontWeight = FontWeight.SemiBold)
                 Spacer(modifier = Modifier.height(4.dp))
                 Row(
                   modifier = Modifier
                     .fillMaxWidth()
                     .height(52.dp)
                     .clip(RoundedCornerShape(12.dp))
-                    .background(Color(0xFF070E1A))
-                    .border(1.dp, Color(0xFF1E293B), RoundedCornerShape(12.dp))
-                    .clickable { showCurrencyDropdown = true }
+                    .background(if (currentThemeColors.isDark) Color(0xFF070E1A) else Color(0xFFF8FAFC))
+                    .border(1.dp, currentThemeColors.cardBorder, RoundedCornerShape(12.dp))
+                    .clickable { showWorldwideCurrencyDialog = true }
                     .padding(horizontal = 12.dp),
                   verticalAlignment = Alignment.CenterVertically,
                   horizontalArrangement = Arrangement.SpaceBetween
                 ) {
-                  Text(text = currencyInput, color = Color.White, fontSize = 14.sp, fontWeight = FontWeight.SemiBold)
+                  Row(verticalAlignment = Alignment.CenterVertically) {
+                    Text(text = resolvedCurrency.flagEmoji, fontSize = 16.sp)
+                    Spacer(modifier = Modifier.width(6.dp))
+                    Text(
+                      text = currencyInput,
+                      color = currentThemeColors.textPrimary,
+                      fontSize = 13.sp,
+                      fontWeight = FontWeight.Bold
+                    )
+                  }
                   Icon(
                     imageVector = Icons.Default.KeyboardArrowDown,
                     contentDescription = null,
-                    tint = Color(0xFF94A3B8)
-                  )
-                }
-              }
-
-              DropdownMenu(
-                expanded = showCurrencyDropdown,
-                onDismissRequest = { showCurrencyDropdown = false },
-                modifier = Modifier.background(Color(0xFF0F172A))
-              ) {
-                availableCurrencies.forEach { curr ->
-                  DropdownMenuItem(
-                    text = { Text(curr, color = Color.White) },
-                    onClick = {
-                      currencyInput = curr
-                      showCurrencyDropdown = false
-                    }
+                    tint = currentThemeColors.textSecondary
                   )
                 }
               }
@@ -988,21 +1034,21 @@ fun SettingsScreen(
 
             // Base Salary
             Column(modifier = Modifier.weight(1f)) {
-              Text("Base Salary", fontSize = 11.sp, color = Color(0xFF94A3B8), fontWeight = FontWeight.SemiBold)
+              Text("Base Salary", fontSize = 11.sp, color = currentThemeColors.textSecondary, fontWeight = FontWeight.SemiBold)
               Spacer(modifier = Modifier.height(4.dp))
               OutlinedTextField(
                 value = baseSalaryInput,
                 onValueChange = { baseSalaryInput = it },
-                placeholder = { Text("0.000", color = Color(0xFF64748B)) },
+                placeholder = { Text("0.000", color = currentThemeColors.textMuted) },
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
                 singleLine = true,
                 colors = OutlinedTextFieldDefaults.colors(
-                  focusedContainerColor = Color(0xFF070E1A),
-                  unfocusedContainerColor = Color(0xFF070E1A),
+                  focusedContainerColor = if (currentThemeColors.isDark) Color(0xFF070E1A) else Color(0xFFF8FAFC),
+                  unfocusedContainerColor = if (currentThemeColors.isDark) Color(0xFF070E1A) else Color(0xFFF8FAFC),
                   focusedBorderColor = currentThemeColors.primary,
-                  unfocusedBorderColor = Color(0xFF1E293B),
-                  focusedTextColor = Color.White,
-                  unfocusedTextColor = Color.White
+                  unfocusedBorderColor = currentThemeColors.cardBorder,
+                  focusedTextColor = currentThemeColors.textPrimary,
+                  unfocusedTextColor = currentThemeColors.textPrimary
                 ),
                 shape = RoundedCornerShape(12.dp),
                 modifier = Modifier
@@ -1020,21 +1066,21 @@ fun SettingsScreen(
             horizontalArrangement = Arrangement.spacedBy(12.dp)
           ) {
             Column(modifier = Modifier.weight(1f)) {
-              Text("Target Orders", fontSize = 11.sp, color = Color(0xFF94A3B8), fontWeight = FontWeight.SemiBold)
+              Text("Target Orders", fontSize = 11.sp, color = currentThemeColors.textSecondary, fontWeight = FontWeight.SemiBold)
               Spacer(modifier = Modifier.height(4.dp))
               OutlinedTextField(
                 value = targetOrdersInput,
                 onValueChange = { targetOrdersInput = it.filter { c -> c.isDigit() } },
-                placeholder = { Text("400", color = Color(0xFF64748B)) },
+                placeholder = { Text("400", color = currentThemeColors.textMuted) },
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                 singleLine = true,
                 colors = OutlinedTextFieldDefaults.colors(
-                  focusedContainerColor = Color(0xFF070E1A),
-                  unfocusedContainerColor = Color(0xFF070E1A),
+                  focusedContainerColor = if (currentThemeColors.isDark) Color(0xFF070E1A) else Color(0xFFF8FAFC),
+                  unfocusedContainerColor = if (currentThemeColors.isDark) Color(0xFF070E1A) else Color(0xFFF8FAFC),
                   focusedBorderColor = currentThemeColors.primary,
-                  unfocusedBorderColor = Color(0xFF1E293B),
-                  focusedTextColor = Color.White,
-                  unfocusedTextColor = Color.White
+                  unfocusedBorderColor = currentThemeColors.cardBorder,
+                  focusedTextColor = currentThemeColors.textPrimary,
+                  unfocusedTextColor = currentThemeColors.textPrimary
                 ),
                 shape = RoundedCornerShape(12.dp),
                 modifier = Modifier
@@ -1044,21 +1090,21 @@ fun SettingsScreen(
             }
 
             Column(modifier = Modifier.weight(1f)) {
-              Text("Max Orders", fontSize = 11.sp, color = Color(0xFF94A3B8), fontWeight = FontWeight.SemiBold)
+              Text("Max Orders", fontSize = 11.sp, color = currentThemeColors.textSecondary, fontWeight = FontWeight.SemiBold)
               Spacer(modifier = Modifier.height(4.dp))
               OutlinedTextField(
                 value = maxOrdersInput,
                 onValueChange = { maxOrdersInput = it.filter { c -> c.isDigit() } },
-                placeholder = { Text("400", color = Color(0xFF64748B)) },
+                placeholder = { Text("400", color = currentThemeColors.textMuted) },
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                 singleLine = true,
                 colors = OutlinedTextFieldDefaults.colors(
-                  focusedContainerColor = Color(0xFF070E1A),
-                  unfocusedContainerColor = Color(0xFF070E1A),
+                  focusedContainerColor = if (currentThemeColors.isDark) Color(0xFF070E1A) else Color(0xFFF8FAFC),
+                  unfocusedContainerColor = if (currentThemeColors.isDark) Color(0xFF070E1A) else Color(0xFFF8FAFC),
                   focusedBorderColor = currentThemeColors.primary,
-                  unfocusedBorderColor = Color(0xFF1E293B),
-                  focusedTextColor = Color.White,
-                  unfocusedTextColor = Color.White
+                  unfocusedBorderColor = currentThemeColors.cardBorder,
+                  focusedTextColor = currentThemeColors.textPrimary,
+                  unfocusedTextColor = currentThemeColors.textPrimary
                 ),
                 shape = RoundedCornerShape(12.dp),
                 modifier = Modifier
@@ -1072,21 +1118,21 @@ fun SettingsScreen(
 
           // Row 3: Normal Comm.
           Column(modifier = Modifier.fillMaxWidth()) {
-            Text("Normal Comm.", fontSize = 11.sp, color = Color(0xFF94A3B8), fontWeight = FontWeight.SemiBold)
+            Text("Normal Comm.", fontSize = 11.sp, color = currentThemeColors.textSecondary, fontWeight = FontWeight.SemiBold)
             Spacer(modifier = Modifier.height(4.dp))
             OutlinedTextField(
               value = normalCommInput,
               onValueChange = { normalCommInput = it },
-              placeholder = { Text("0.5", color = Color(0xFF64748B)) },
+              placeholder = { Text("0.5", color = currentThemeColors.textMuted) },
               keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
               singleLine = true,
               colors = OutlinedTextFieldDefaults.colors(
-                focusedContainerColor = Color(0xFF070E1A),
-                unfocusedContainerColor = Color(0xFF070E1A),
+                focusedContainerColor = if (currentThemeColors.isDark) Color(0xFF070E1A) else Color(0xFFF8FAFC),
+                unfocusedContainerColor = if (currentThemeColors.isDark) Color(0xFF070E1A) else Color(0xFFF8FAFC),
                 focusedBorderColor = currentThemeColors.primary,
-                unfocusedBorderColor = Color(0xFF1E293B),
-                focusedTextColor = Color.White,
-                unfocusedTextColor = Color.White
+                unfocusedBorderColor = currentThemeColors.cardBorder,
+                focusedTextColor = currentThemeColors.textPrimary,
+                unfocusedTextColor = currentThemeColors.textPrimary
               ),
               shape = RoundedCornerShape(12.dp),
               modifier = Modifier
@@ -1099,21 +1145,21 @@ fun SettingsScreen(
 
           // Row 4: Extra Comm.
           Column(modifier = Modifier.fillMaxWidth()) {
-            Text("Extra Comm.", fontSize = 11.sp, color = Color(0xFF94A3B8), fontWeight = FontWeight.SemiBold)
+            Text("Extra Comm.", fontSize = 11.sp, color = currentThemeColors.textSecondary, fontWeight = FontWeight.SemiBold)
             Spacer(modifier = Modifier.height(4.dp))
             OutlinedTextField(
               value = extraCommInput,
               onValueChange = { extraCommInput = it },
-              placeholder = { Text("0.8", color = Color(0xFF64748B)) },
+              placeholder = { Text("0.8", color = currentThemeColors.textMuted) },
               keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
               singleLine = true,
               colors = OutlinedTextFieldDefaults.colors(
-                focusedContainerColor = Color(0xFF070E1A),
-                unfocusedContainerColor = Color(0xFF070E1A),
+                focusedContainerColor = if (currentThemeColors.isDark) Color(0xFF070E1A) else Color(0xFFF8FAFC),
+                unfocusedContainerColor = if (currentThemeColors.isDark) Color(0xFF070E1A) else Color(0xFFF8FAFC),
                 focusedBorderColor = currentThemeColors.primary,
-                unfocusedBorderColor = Color(0xFF1E293B),
-                focusedTextColor = Color.White,
-                unfocusedTextColor = Color.White
+                unfocusedBorderColor = currentThemeColors.cardBorder,
+                focusedTextColor = currentThemeColors.textPrimary,
+                unfocusedTextColor = currentThemeColors.textPrimary
               ),
               shape = RoundedCornerShape(12.dp),
               modifier = Modifier
@@ -1543,10 +1589,10 @@ fun SettingsScreen(
                 text = "Order Tracker",
                 fontSize = 16.sp,
                 fontWeight = FontWeight.Bold,
-                color = Color.White
+                color = currentThemeColors.textPrimary
               )
               Text(
-                text = "Version 2.0.5 (Build 6)",
+                text = "Version 2.0.6 (Build 7)",
                 fontSize = 12.sp,
                 fontWeight = FontWeight.Bold,
                 color = Color(0xFF10B981)
@@ -1556,7 +1602,7 @@ fun SettingsScreen(
             Box(
               modifier = Modifier
                 .clip(RoundedCornerShape(12.dp))
-                .background(Color(0xFF00E5FF))
+                .background(currentThemeColors.primary)
                 .clickable { viewModel.openUpdateCenter() }
                 .padding(horizontal = 14.dp, vertical = 9.dp)
                 .testTag("btn_check_updates")
@@ -1586,15 +1632,15 @@ fun SettingsScreen(
             modifier = Modifier
               .fillMaxWidth()
               .clip(RoundedCornerShape(14.dp))
-              .background(Color(0xFF070E1A))
-              .border(1.dp, Color(0xFF1E293B), RoundedCornerShape(14.dp))
+              .background(if (currentThemeColors.isDark) Color(0xFF070E1A) else Color(0xFFF8FAFC))
+              .border(1.dp, currentThemeColors.cardBorder, RoundedCornerShape(14.dp))
               .padding(14.dp)
           ) {
             Row(verticalAlignment = Alignment.CenterVertically) {
               Text(text = "✨", fontSize = 14.sp)
               Spacer(modifier = Modifier.width(6.dp))
               Text(
-                text = "What's New in v2.0.5",
+                text = "What's New in v2.0.6",
                 fontSize = 12.sp,
                 fontWeight = FontWeight.Bold,
                 color = currentThemeColors.primary
@@ -1604,10 +1650,10 @@ fun SettingsScreen(
             Spacer(modifier = Modifier.height(8.dp))
 
             Text(
-              text = "• 🧊 Ultra-Frosted Glass Neo Theme with liquid glow, cyan neon highlights, and premium card styles.\n• 📊 Redesigned Orders Dashboard: High-contrast target progress card, 3-column stats with dividers, 4 quick filter chips, and day cards matching the luxury theme.\n• 🎨 Dynamic System Theme: Top bar, floating bottom bar, today badge, and month selectors completely adapt to your selected theme colors.\n• 🚀 Automatic System Update Notifications: Drivers get instant alerts with 1-tap download and install when a new update is released.\n• ⏰ Duty End Reminder popup with 1-tap quick delivery and tip logging.",
+              text = "• ☀️ Pure Professional White Mode: Ultra-clean, crisp white canvas with high-contrast slate typography and vibrant neon accents.\n• 🌍 Worldwide Currencies with Flags: Full global currency registry covering Nepal (NPR Rs.), Kuwait (KWD KD), India (INR ₹), UAE (AED), USA (USD $), UK (GBP £), Euro (EUR €), and 35+ more countries with real flags.\n• ⚡ 1-Tap Auto-Detect Country: Automatically detects your device locale and configures the native currency instantly.\n• 💎 Complete Luxury Theme Harmonization: All 8 themes (Glass Neo, Neon Cyan, Luxury Gold, Imperial Jade, Mid Purple, etc.) adapt seamlessly across light and dark modes.\n• 🔒 Verified RSA Cryptographic Signature: Self-updater now validates official certificate fingerprint to eliminate SHA-256 false alarms.",
               fontSize = 11.sp,
               lineHeight = 16.sp,
-              color = Color(0xFF94A3B8)
+              color = currentThemeColors.textSecondary
             )
           }
 
@@ -1800,10 +1846,10 @@ fun SettingsScreen(
       },
       dismissButton = {
         TextButton(onClick = { showDutyTimeDialog = false }) {
-          Text("Cancel", color = Color(0xFF94A3B8))
+          Text("Cancel", color = currentThemeColors.textSecondary)
         }
       },
-      containerColor = Color(0xFF0F172A)
+      containerColor = currentThemeColors.cardBackground
     )
   }
 
@@ -1811,11 +1857,11 @@ fun SettingsScreen(
   if (showClearConfirmDialog) {
     AlertDialog(
       onDismissRequest = { showClearConfirmDialog = false },
-      title = { Text("Clear All Records?", fontWeight = FontWeight.Bold, color = Color.White) },
+      title = { Text("Clear All Records?", fontWeight = FontWeight.Bold, color = currentThemeColors.textPrimary) },
       text = {
         Text(
           "This will permanently remove all orders, tips, and gas expense records. This action cannot be undone.",
-          color = Color(0xFF94A3B8)
+          color = currentThemeColors.textSecondary
         )
       },
       confirmButton = {
@@ -1830,10 +1876,185 @@ fun SettingsScreen(
       },
       dismissButton = {
         TextButton(onClick = { showClearConfirmDialog = false }) {
-          Text("Cancel", color = Color(0xFF94A3B8))
+          Text("Cancel", color = currentThemeColors.textSecondary)
         }
       },
-      containerColor = Color(0xFF0F172A)
+      containerColor = currentThemeColors.cardBackground
+    )
+  }
+
+  // Worldwide Currency Selection Dialog
+  if (showWorldwideCurrencyDialog) {
+    val filteredCurrencies = remember(currencySearchQuery) {
+      if (currencySearchQuery.isBlank()) {
+        CurrencyRegistry.WORLD_CURRENCIES
+      } else {
+        CurrencyRegistry.WORLD_CURRENCIES.filter {
+          it.countryName.contains(currencySearchQuery, ignoreCase = true) ||
+          it.currencyCode.contains(currencySearchQuery, ignoreCase = true) ||
+          it.currencyName.contains(currencySearchQuery, ignoreCase = true) ||
+          it.symbol.contains(currencySearchQuery, ignoreCase = true)
+        }
+      }
+    }
+
+    AlertDialog(
+      onDismissRequest = {
+        showWorldwideCurrencyDialog = false
+        currencySearchQuery = ""
+      },
+      title = {
+        Row(verticalAlignment = Alignment.CenterVertically) {
+          Text(text = "🌍", fontSize = 20.sp)
+          Spacer(modifier = Modifier.width(8.dp))
+          Text(
+            text = "Select Country & Currency",
+            fontSize = 17.sp,
+            fontWeight = FontWeight.Bold,
+            color = currentThemeColors.textPrimary
+          )
+        }
+      },
+      text = {
+        Column(
+          modifier = Modifier
+            .fillMaxWidth()
+            .height(380.dp)
+        ) {
+          // Search Input
+          OutlinedTextField(
+            value = currencySearchQuery,
+            onValueChange = { currencySearchQuery = it },
+            placeholder = { Text("Search country or currency...", color = currentThemeColors.textMuted, fontSize = 12.sp) },
+            leadingIcon = {
+              Icon(imageVector = Icons.Default.Search, contentDescription = null, tint = currentThemeColors.textSecondary, modifier = Modifier.size(18.dp))
+            },
+            singleLine = true,
+            colors = OutlinedTextFieldDefaults.colors(
+              focusedContainerColor = if (currentThemeColors.isDark) Color(0xFF070E1A) else Color(0xFFF1F5F9),
+              unfocusedContainerColor = if (currentThemeColors.isDark) Color(0xFF070E1A) else Color(0xFFF1F5F9),
+              focusedBorderColor = currentThemeColors.primary,
+              unfocusedBorderColor = currentThemeColors.cardBorder,
+              focusedTextColor = currentThemeColors.textPrimary,
+              unfocusedTextColor = currentThemeColors.textPrimary
+            ),
+            shape = RoundedCornerShape(12.dp),
+            modifier = Modifier.fillMaxWidth()
+          )
+
+          Spacer(modifier = Modifier.height(10.dp))
+
+          // 1-Tap Auto-Detect Header Pill inside modal
+          Surface(
+            shape = RoundedCornerShape(10.dp),
+            color = currentThemeColors.primary.copy(alpha = 0.12f),
+            border = BorderStroke(1.dp, currentThemeColors.primary.copy(alpha = 0.4f)),
+            modifier = Modifier
+              .fillMaxWidth()
+              .clickable {
+                val detected = viewModel.detectAndApplyCurrency()
+                currencyInput = detected.currencyCode
+                autoDetectedCountryName = "${detected.flagEmoji} ${detected.countryName}"
+                showWorldwideCurrencyDialog = false
+                currencySearchQuery = ""
+                scope.launch {
+                  viewModel.showSnackbar("🌍 Auto-Detected: ${detected.flagEmoji} ${detected.countryName} (${detected.currencyCode})")
+                }
+              }
+          ) {
+            Row(
+              modifier = Modifier.padding(horizontal = 12.dp, vertical = 9.dp),
+              verticalAlignment = Alignment.CenterVertically
+            ) {
+              Text(text = "⚡", fontSize = 14.sp)
+              Spacer(modifier = Modifier.width(8.dp))
+              Text(
+                text = "Auto-Detect My Current Location 📍",
+                fontSize = 12.sp,
+                fontWeight = FontWeight.Bold,
+                color = currentThemeColors.primary
+              )
+            }
+          }
+
+          Spacer(modifier = Modifier.height(8.dp))
+
+          // Currency Scrollable List
+          Column(
+            modifier = Modifier
+              .fillMaxWidth()
+              .weight(1f)
+              .verticalScroll(rememberScrollState()),
+            verticalArrangement = Arrangement.spacedBy(6.dp)
+          ) {
+            filteredCurrencies.forEach { curr ->
+              val isSelected = (currencyInput.equals(curr.currencyCode, ignoreCase = true) || currencyInput.startsWith(curr.currencyCode))
+              Surface(
+                shape = RoundedCornerShape(10.dp),
+                color = if (isSelected) currentThemeColors.primary.copy(alpha = 0.18f) else (if (currentThemeColors.isDark) Color(0xFF070E1A) else Color(0xFFF8FAFC)),
+                border = BorderStroke(
+                  1.dp,
+                  if (isSelected) currentThemeColors.primary else currentThemeColors.cardBorder
+                ),
+                modifier = Modifier
+                  .fillMaxWidth()
+                  .clickable {
+                    currencyInput = curr.currencyCode
+                    viewModel.updateCurrency(curr.currencyCode)
+                    showWorldwideCurrencyDialog = false
+                    currencySearchQuery = ""
+                  }
+              ) {
+                Row(
+                  modifier = Modifier.padding(horizontal = 12.dp, vertical = 10.dp),
+                  verticalAlignment = Alignment.CenterVertically,
+                  horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                  Row(verticalAlignment = Alignment.CenterVertically) {
+                    Text(text = curr.flagEmoji, fontSize = 22.sp)
+                    Spacer(modifier = Modifier.width(10.dp))
+                    Column {
+                      Text(
+                        text = curr.countryName,
+                        fontSize = 13.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = currentThemeColors.textPrimary
+                      )
+                      Text(
+                        text = "${curr.currencyName} (${curr.symbol})",
+                        fontSize = 11.sp,
+                        color = currentThemeColors.textSecondary
+                      )
+                    }
+                  }
+
+                  Surface(
+                    shape = RoundedCornerShape(6.dp),
+                    color = if (isSelected) currentThemeColors.primary else (if (currentThemeColors.isDark) Color(0xFF1E293B) else Color(0xFFE2E8F0))
+                  ) {
+                    Text(
+                      text = curr.currencyCode,
+                      fontSize = 11.sp,
+                      fontWeight = FontWeight.ExtraBold,
+                      color = if (isSelected) Color.Black else currentThemeColors.textPrimary,
+                      modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
+                    )
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      confirmButton = {
+        TextButton(onClick = {
+          showWorldwideCurrencyDialog = false
+          currencySearchQuery = ""
+        }) {
+          Text("Cancel", color = currentThemeColors.textSecondary)
+        }
+      },
+      containerColor = currentThemeColors.cardBackground
     )
   }
 }

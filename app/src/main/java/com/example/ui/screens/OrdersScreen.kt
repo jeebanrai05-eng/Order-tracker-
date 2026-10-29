@@ -245,7 +245,7 @@ fun OrdersScreen(
           }
 
           val chipBorderColor = when (filter) {
-            DayFilter.ALL -> if (isSelected) themeColors.primary else Color(0xFF1E293B)
+            DayFilter.ALL -> if (isSelected) themeColors.primary else themeColors.cardBorder
             DayFilter.WORKED -> if (isSelected) themeColors.primary else Color(0xFF0D9488).copy(alpha = 0.5f)
             DayFilter.FUEL -> if (isSelected) Color(0xFFF97316) else Color(0xFFEA580C).copy(alpha = 0.4f)
             DayFilter.GOAL -> if (isSelected) Color(0xFFA855F7) else Color(0xFF7C3AED).copy(alpha = 0.4f)
@@ -261,7 +261,11 @@ fun OrdersScreen(
                   )
                 } else {
                   Brush.horizontalGradient(
-                    listOf(Color(0xFF0A1325), Color(0xFF070E1A))
+                    if (themeColors.isDark) {
+                      listOf(Color(0xFF0A1325), Color(0xFF070E1A))
+                    } else {
+                      listOf(Color(0xFFF1F5F9), Color(0xFFE2E8F0))
+                    }
                   )
                 }
               )
@@ -282,7 +286,7 @@ fun OrdersScreen(
                 text = "${filter.label} ($count)",
                 fontSize = 12.sp,
                 fontWeight = if (isSelected) FontWeight.Black else FontWeight.SemiBold,
-                color = if (isSelected) Color.Black else Color.White
+                color = if (isSelected) Color.Black else themeColors.textPrimary
               )
             }
           }
@@ -308,7 +312,7 @@ fun OrdersScreen(
             text = "Date",
             fontSize = 12.sp,
             fontWeight = FontWeight.Bold,
-            color = Color(0xFF94A3B8)
+            color = themeColors.textSecondary
           )
         }
 
@@ -323,7 +327,7 @@ fun OrdersScreen(
             text = "Orders",
             fontSize = 12.sp,
             fontWeight = FontWeight.Bold,
-            color = Color(0xFF94A3B8)
+            color = themeColors.textSecondary
           )
         }
 
@@ -338,7 +342,7 @@ fun OrdersScreen(
             text = "Tip",
             fontSize = 12.sp,
             fontWeight = FontWeight.Bold,
-            color = Color(0xFF94A3B8)
+            color = themeColors.textSecondary
           )
         }
 
@@ -353,7 +357,7 @@ fun OrdersScreen(
             text = "Gas",
             fontSize = 12.sp,
             fontWeight = FontWeight.Bold,
-            color = Color(0xFF94A3B8)
+            color = themeColors.textSecondary
           )
         }
       }
@@ -376,13 +380,13 @@ fun OrdersScreen(
               text = "No records match '${selectedFilter.label}'",
               fontSize = 15.sp,
               fontWeight = FontWeight.SemiBold,
-              color = Color.White
+              color = themeColors.textPrimary
             )
             Spacer(modifier = Modifier.height(6.dp))
             Text(
               text = "Tap any day in the list to log orders and fuel.",
               fontSize = 12.sp,
-              color = Color(0xFF94A3B8),
+              color = themeColors.textSecondary,
               textAlign = TextAlign.Center
             )
             Spacer(modifier = Modifier.height(14.dp))
@@ -524,7 +528,7 @@ private fun HeroTargetProgressCard(
             text = "$monthName Target Progress",
             fontSize = 14.sp,
             fontWeight = FontWeight.Bold,
-            color = Color.White
+            color = themeColors.textPrimary
           )
         }
 
@@ -553,7 +557,7 @@ private fun HeroTargetProgressCard(
           .fillMaxWidth()
           .height(8.dp)
           .clip(RoundedCornerShape(4.dp))
-          .background(Color(0xFF131C31))
+          .background(if (themeColors.isDark) Color(0xFF131C31) else Color(0xFFE2E8F0))
       ) {
         if (animatedProgress > 0f) {
           Box(
@@ -586,7 +590,7 @@ private fun HeroTargetProgressCard(
             Text(
               text = "Orders Delivered",
               fontSize = 10.sp,
-              color = Color(0xFF94A3B8),
+              color = themeColors.textSecondary,
               fontWeight = FontWeight.Medium
             )
           }
@@ -595,7 +599,7 @@ private fun HeroTargetProgressCard(
             text = "$currentOrders / $targetOrders",
             fontSize = 14.sp,
             fontWeight = FontWeight.ExtraBold,
-            color = Color.White
+            color = themeColors.textPrimary
           )
         }
 
@@ -604,7 +608,7 @@ private fun HeroTargetProgressCard(
           modifier = Modifier
             .width(1.dp)
             .height(28.dp)
-            .background(Color(0xFF1E293B))
+            .background(themeColors.dividerColor)
         )
 
         // Col 2: Total Tips
@@ -617,7 +621,7 @@ private fun HeroTargetProgressCard(
             Text(
               text = "Total Tips",
               fontSize = 10.sp,
-              color = Color(0xFF94A3B8),
+              color = themeColors.textSecondary,
               fontWeight = FontWeight.Medium
             )
           }
@@ -635,7 +639,7 @@ private fun HeroTargetProgressCard(
           modifier = Modifier
             .width(1.dp)
             .height(28.dp)
-            .background(Color(0xFF1E293B))
+            .background(themeColors.dividerColor)
         )
 
         // Col 3: Est. Net Profit
@@ -648,7 +652,7 @@ private fun HeroTargetProgressCard(
             Text(
               text = "Est. Net Profit",
               fontSize = 10.sp,
-              color = Color(0xFF94A3B8),
+              color = themeColors.textSecondary,
               fontWeight = FontWeight.Medium
             )
           }
@@ -709,7 +713,7 @@ private fun NeonOrderDayCard(
     shape = RoundedCornerShape(14.dp),
     colors = CardDefaults.cardColors(
       containerColor = if (isToday) {
-        Color(0xFF03224C).copy(alpha = 0.85f)
+        if (themeColors.isDark) Color(0xFF03224C).copy(alpha = 0.85f) else themeColors.primary.copy(alpha = 0.12f)
       } else {
         themeColors.cardBackground
       }
@@ -717,7 +721,7 @@ private fun NeonOrderDayCard(
     border = if (isToday) {
       BorderStroke(1.8.dp, themeColors.primary)
     } else {
-      BorderStroke(1.dp, Color(0xFF1E293B).copy(alpha = 0.85f))
+      BorderStroke(1.dp, themeColors.cardBorder)
     }
   ) {
     Box(modifier = Modifier.fillMaxWidth()) {
@@ -733,8 +737,8 @@ private fun NeonOrderDayCard(
             .width(46.dp)
             .height(44.dp)
             .clip(RoundedCornerShape(10.dp))
-            .background(Color(0xFF070E1A))
-            .border(1.dp, if (isToday) themeColors.primary else Color(0xFF1E293B), RoundedCornerShape(10.dp)),
+            .background(if (themeColors.isDark) Color(0xFF070E1A) else Color(0xFFF1F5F9))
+            .border(1.dp, if (isToday) themeColors.primary else themeColors.cardBorder, RoundedCornerShape(10.dp)),
           contentAlignment = Alignment.Center
         ) {
           Column(
@@ -745,7 +749,7 @@ private fun NeonOrderDayCard(
               text = "$day",
               fontSize = 15.sp,
               fontWeight = FontWeight.Black,
-              color = Color.White
+              color = themeColors.textPrimary
             )
             Text(
               text = dayOfWeek.uppercase(),
@@ -794,7 +798,7 @@ private fun NeonOrderDayCard(
             text = if (hasOrders) "${record?.orders}" else "Ord",
             fontSize = 14.sp,
             fontWeight = if (hasOrders) FontWeight.Bold else FontWeight.Medium,
-            color = if (hasOrders) Color.White else Color(0xFF64748B)
+            color = if (hasOrders) themeColors.textPrimary else themeColors.textMuted
           )
         }
 
@@ -807,7 +811,7 @@ private fun NeonOrderDayCard(
             text = if (hasTip) String.format("%.2f", record?.tip) else "--",
             fontSize = 14.sp,
             fontWeight = if (hasTip) FontWeight.Bold else FontWeight.Normal,
-            color = if (hasTip) themeColors.primary else Color(0xFF64748B)
+            color = if (hasTip) themeColors.primary else themeColors.textMuted
           )
         }
 
@@ -820,7 +824,7 @@ private fun NeonOrderDayCard(
             text = if (hasGas) String.format("%.2f", record?.gas) else "--",
             fontSize = 14.sp,
             fontWeight = if (hasGas) FontWeight.Bold else FontWeight.Normal,
-            color = if (hasGas) Color(0xFFFF5252) else Color(0xFF64748B)
+            color = if (hasGas) Color(0xFFFF5252) else themeColors.textMuted
           )
         }
 
@@ -829,7 +833,7 @@ private fun NeonOrderDayCard(
           text = "›",
           fontSize = 18.sp,
           fontWeight = FontWeight.ExtraBold,
-          color = Color(0xFF64748B)
+          color = themeColors.textMuted
         )
       }
 

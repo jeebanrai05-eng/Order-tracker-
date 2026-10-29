@@ -120,7 +120,7 @@ fun MonthSelectorHeader(
           text = "$monthName $year",
           fontSize = 17.sp,
           fontWeight = FontWeight.ExtraBold,
-          color = Color.White
+          color = themeColors.textPrimary
         )
         Spacer(modifier = Modifier.width(4.dp))
         Icon(

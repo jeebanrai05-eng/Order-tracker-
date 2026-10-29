@@ -25,6 +25,8 @@ import com.example.data.update.DownloadStatus
 import com.example.data.update.UpdateCheckResult
 import com.example.data.update.UpdateManager
 import com.example.data.update.UpdateManifest
+import com.example.data.CurrencyRegistry
+import com.example.data.CountryCurrency
 import java.util.Calendar
 
 enum class NavigationTab {
@@ -70,6 +72,12 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
 
   private val _snackbarMessage = MutableSharedFlow<String>()
   val snackbarMessage: SharedFlow<String> = _snackbarMessage.asSharedFlow()
+
+  fun showSnackbar(message: String) {
+    viewModelScope.launch {
+      _snackbarMessage.emit(message)
+    }
+  }
 
   private val _isSyncing = MutableStateFlow(false)
   val isSyncing: StateFlow<Boolean> = _isSyncing.asStateFlow()
@@ -271,6 +279,12 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
 
   fun updateCurrency(currency: String) {
     preferencesManager.updateCurrency(currency)
+  }
+
+  fun detectAndApplyCurrency(): CountryCurrency {
+    val detected = CurrencyRegistry.detectDeviceCountryCurrency(getApplication())
+    preferencesManager.updateCurrency(detected.currencyCode)
+    return detected
   }
 
   fun updateBaseSalary(salary: Double) {

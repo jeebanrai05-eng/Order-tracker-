@@ -105,14 +105,24 @@ fun ChartScreen(
   val daysInMonth = viewModel.getDaysInSelectedMonth()
 
   // Theme-Adaptive Net Profit Hero Card Gradient
-  val heroCardGradient = remember(currentThemeColors.primary) {
-    Brush.linearGradient(
-      colors = listOf(
-        currentThemeColors.variant,
-        currentThemeColors.primary.copy(alpha = 0.85f),
-        Color(0xFF0F172A).copy(alpha = 0.95f)
+  val heroCardGradient = remember(currentThemeColors.primary, currentThemeColors.isDark) {
+    if (currentThemeColors.isDark) {
+      Brush.linearGradient(
+        colors = listOf(
+          currentThemeColors.variant,
+          currentThemeColors.primary.copy(alpha = 0.85f),
+          Color(0xFF0F172A).copy(alpha = 0.95f)
+        )
       )
-    )
+    } else {
+      Brush.linearGradient(
+        colors = listOf(
+          currentThemeColors.variant,
+          currentThemeColors.primary,
+          currentThemeColors.accent
+        )
+      )
+    }
   }
 
   // Dynamic Theme Adaptive Background
@@ -195,14 +205,14 @@ fun ChartScreen(
               text = "$monthName $year Report",
               fontSize = 22.sp,
               fontWeight = FontWeight.ExtraBold,
-              color = Color.White,
+              color = currentThemeColors.textPrimary,
               letterSpacing = (-0.4).sp
             )
             Spacer(modifier = Modifier.height(2.dp))
             Text(
               text = "Track your performance and growth",
               fontSize = 12.sp,
-              color = Color(0xFF94A3B8)
+              color = currentThemeColors.textSecondary
             )
           }
         }
@@ -212,7 +222,7 @@ fun ChartScreen(
           modifier = Modifier
             .size(42.dp)
             .clip(RoundedCornerShape(12.dp))
-            .background(Color(0xFF0F172A))
+            .background(currentThemeColors.cardBackground)
             .border(1.dp, currentThemeColors.cardBorder, RoundedCornerShape(12.dp))
             .clickable { showMonthPicker = true }
             .testTag("btn_month_picker"),
@@ -329,7 +339,7 @@ fun ChartScreen(
                 text = "ORDER PERFORMANCE",
                 fontSize = 13.sp,
                 fontWeight = FontWeight.ExtraBold,
-                color = Color.White,
+                color = currentThemeColors.textPrimary,
                 letterSpacing = 0.5.sp
               )
             }
@@ -339,8 +349,8 @@ fun ChartScreen(
               Row(
                 modifier = Modifier
                   .clip(RoundedCornerShape(8.dp))
-                  .background(Color(0xFF070E1A))
-                  .border(1.dp, Color(0xFF1E293B), RoundedCornerShape(8.dp))
+                  .background(if (currentThemeColors.isDark) Color(0xFF070E1A) else Color(0xFFF1F5F9))
+                  .border(1.dp, currentThemeColors.cardBorder, RoundedCornerShape(8.dp))
                   .clickable { showMetricDropdown = true }
                   .padding(horizontal = 10.dp, vertical = 5.dp)
                   .testTag("btn_metric_dropdown"),
@@ -350,13 +360,13 @@ fun ChartScreen(
                   text = selectedMetric,
                   fontSize = 12.sp,
                   fontWeight = FontWeight.SemiBold,
-                  color = Color.White
+                  color = currentThemeColors.textPrimary
                 )
                 Spacer(modifier = Modifier.width(4.dp))
                 Icon(
                   imageVector = Icons.Default.ArrowDropDown,
                   contentDescription = "Dropdown",
-                  tint = Color(0xFF94A3B8),
+                  tint = currentThemeColors.textSecondary,
                   modifier = Modifier.size(16.dp)
                 )
               }
@@ -364,11 +374,11 @@ fun ChartScreen(
               DropdownMenu(
                 expanded = showMetricDropdown,
                 onDismissRequest = { showMetricDropdown = false },
-                modifier = Modifier.background(Color(0xFF0F172A))
+                modifier = Modifier.background(currentThemeColors.cardBackground)
               ) {
                 listOf("Daily Orders", "Daily Tips", "Daily Gas", "Daily Profit").forEach { metric ->
                   DropdownMenuItem(
-                    text = { Text(metric, color = Color.White, fontSize = 13.sp) },
+                    text = { Text(metric, color = currentThemeColors.textPrimary, fontSize = 13.sp) },
                     onClick = {
                       viewModel.setMetric(metric)
                       showMetricDropdown = false
@@ -410,7 +420,7 @@ fun ChartScreen(
               text = "Daily Avg: ${if (selectedMetric == "Daily Orders") String.format("%.1f", avg) else "${settings.currency} ${String.format("%.2f", avg)}"}",
               fontSize = 13.sp,
               fontWeight = FontWeight.Medium,
-              color = Color(0xFF94A3B8)
+              color = currentThemeColors.textSecondary
             )
           }
 
@@ -449,7 +459,7 @@ fun ChartScreen(
           text = "TARGET TRACKER",
           fontSize = 13.sp,
           fontWeight = FontWeight.ExtraBold,
-          color = Color.White,
+          color = currentThemeColors.textPrimary,
           letterSpacing = 0.5.sp
         )
       }
@@ -461,20 +471,20 @@ fun ChartScreen(
         modifier = Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.spacedBy(10.dp)
       ) {
-        // 1. Target Card (Deep Blue)
+        // 1. Target Card
         TargetMetricBox(
           title = "Target",
           value = "${summary.targetOrders}",
-          valueColor = Color.White,
+          valueColor = currentThemeColors.textPrimary,
           badgeColor = Color(0xFF2563EB),
           iconText = "🎯",
           badgeIconText = "🎯",
-          borderColor = Color(0xFF2563EB).copy(alpha = 0.4f),
-          containerColor = Color(0xFF0C182E),
+          borderColor = if (currentThemeColors.isDark) Color(0xFF2563EB).copy(alpha = 0.4f) else currentThemeColors.cardBorder,
+          containerColor = if (currentThemeColors.isDark) Color(0xFF0C182E) else Color(0xFFF1F5F9),
           modifier = Modifier.weight(1f)
         )
 
-        // 2. Completed Card (Deep Emerald / Theme Tinted)
+        // 2. Completed Card (Emerald / Theme Tinted)
         TargetMetricBox(
           title = "Completed",
           value = "${summary.completedOrders}",
@@ -483,20 +493,20 @@ fun ChartScreen(
           iconText = "✓",
           badgeIconText = "✓",
           borderColor = currentThemeColors.primary.copy(alpha = 0.5f),
-          containerColor = Color(0xFF06221E),
+          containerColor = if (currentThemeColors.isDark) Color(0xFF06221E) else currentThemeColors.primary.copy(alpha = 0.12f),
           modifier = Modifier.weight(1f)
         )
 
-        // 3. Remaining Card (Deep Purple)
+        // 3. Remaining Card
         TargetMetricBox(
           title = "Remaining",
           value = "${summary.remainingOrders}",
-          valueColor = Color.White,
+          valueColor = currentThemeColors.textPrimary,
           badgeColor = Color(0xFF7C3AED),
           iconText = "⌛",
           badgeIconText = "⌛",
-          borderColor = Color(0xFF7C3AED).copy(alpha = 0.4f),
-          containerColor = Color(0xFF1C102E),
+          borderColor = if (currentThemeColors.isDark) Color(0xFF7C3AED).copy(alpha = 0.4f) else currentThemeColors.cardBorder,
+          containerColor = if (currentThemeColors.isDark) Color(0xFF1C102E) else Color(0xFFFAF5FF),
           modifier = Modifier.weight(1f)
         )
       }
@@ -518,7 +528,7 @@ fun ChartScreen(
         Text(
           text = "${summary.completedOrders} / ${summary.targetOrders} orders",
           fontSize = 12.sp,
-          color = Color(0xFF94A3B8),
+          color = currentThemeColors.textSecondary,
           fontWeight = FontWeight.Medium
         )
       }
@@ -531,7 +541,7 @@ fun ChartScreen(
           .fillMaxWidth()
           .height(10.dp)
           .clip(RoundedCornerShape(5.dp))
-          .background(Color(0xFF131C31))
+          .background(if (currentThemeColors.isDark) Color(0xFF131C31) else Color(0xFFE2E8F0))
       ) {
         val progressFraction = summary.targetProgress.coerceIn(0f, 1f)
         if (progressFraction > 0f) {
@@ -564,7 +574,7 @@ fun ChartScreen(
             }
           },
         colors = CardDefaults.cardColors(
-          containerColor = Color(0xFF091629)
+          containerColor = currentThemeColors.cardBackground
         ),
         shape = RoundedCornerShape(20.dp),
         border = BorderStroke(1.dp, currentThemeColors.cardBorder)
@@ -597,13 +607,13 @@ fun ChartScreen(
                 text = "Daily Goal: ${settings.currency} ${String.format("%.1f", settings.dailyEarningsGoal)}",
                 fontSize = 14.sp,
                 fontWeight = FontWeight.Bold,
-                color = Color.White
+                color = currentThemeColors.textPrimary
               )
               Spacer(modifier = Modifier.height(2.dp))
               Text(
                 text = "${summary.daysHittingGoal} of $daysInMonth days achieved daily target (${if (daysInMonth > 0) (summary.daysHittingGoal * 100 / daysInMonth) else 0}%)",
                 fontSize = 11.sp,
-                color = Color(0xFF94A3B8)
+                color = currentThemeColors.textSecondary
               )
             }
           }
@@ -641,7 +651,7 @@ fun ChartScreen(
               text = "›",
               fontSize = 18.sp,
               fontWeight = FontWeight.ExtraBold,
-              color = Color(0xFF94A3B8)
+              color = currentThemeColors.textSecondary
             )
           }
         }
@@ -655,10 +665,10 @@ fun ChartScreen(
   if (showMonthPicker) {
     AlertDialog(
       onDismissRequest = { showMonthPicker = false },
-      title = { Text("Select Report Month", fontWeight = FontWeight.Bold, color = Color.White) },
+      title = { Text("Select Report Month", fontWeight = FontWeight.Bold, color = currentThemeColors.textPrimary) },
       text = {
         Column(modifier = Modifier.fillMaxWidth()) {
-          Text("Choose a month to review earnings and delivery trends:", fontSize = 12.sp, color = Color(0xFF94A3B8))
+          Text("Choose a month to review earnings and delivery trends:", fontSize = 12.sp, color = currentThemeColors.textSecondary)
           Spacer(modifier = Modifier.height(12.dp))
           MONTH_NAMES.chunked(3).forEachIndexed { rowIdx, rowMonths ->
             Row(
@@ -672,8 +682,8 @@ fun ChartScreen(
                   modifier = Modifier
                     .weight(1f)
                     .clip(RoundedCornerShape(10.dp))
-                    .background(if (isSelected) currentThemeColors.primary else Color(0xFF070E1A))
-                    .border(1.dp, if (isSelected) currentThemeColors.primary else Color(0xFF1E293B), RoundedCornerShape(10.dp))
+                    .background(if (isSelected) currentThemeColors.primary else (if (currentThemeColors.isDark) Color(0xFF070E1A) else Color(0xFFF1F5F9)))
+                    .border(1.dp, if (isSelected) currentThemeColors.primary else currentThemeColors.cardBorder, RoundedCornerShape(10.dp))
                     .clickable {
                       viewModel.setYearAndMonth(year, targetM)
                       showMonthPicker = false
@@ -685,7 +695,7 @@ fun ChartScreen(
                     text = mName.take(3),
                     fontSize = 12.sp,
                     fontWeight = FontWeight.Bold,
-                    color = if (isSelected) Color.Black else Color.White
+                    color = if (isSelected) Color.Black else currentThemeColors.textPrimary
                   )
                 }
               }
@@ -698,7 +708,7 @@ fun ChartScreen(
           Text("Done", color = currentThemeColors.primary, fontWeight = FontWeight.Bold)
         }
       },
-      containerColor = Color(0xFF0F172A)
+      containerColor = currentThemeColors.cardBackground
     )
   }
 
@@ -706,10 +716,10 @@ fun ChartScreen(
   if (showExportDialog) {
     AlertDialog(
       onDismissRequest = { showExportDialog = false },
-      title = { Text("$monthName $year Report Summary", fontWeight = FontWeight.Bold, color = Color.White) },
+      title = { Text("$monthName $year Report Summary", fontWeight = FontWeight.Bold, color = currentThemeColors.textPrimary) },
       text = {
         Column(modifier = Modifier.fillMaxWidth()) {
-          Text(text = exportedText, fontSize = 12.sp, color = Color(0xFF94A3B8), lineHeight = 16.sp)
+          Text(text = exportedText, fontSize = 12.sp, color = currentThemeColors.textSecondary, lineHeight = 16.sp)
         }
       },
       confirmButton = {
@@ -734,10 +744,10 @@ fun ChartScreen(
       },
       dismissButton = {
         TextButton(onClick = { showExportDialog = false }) {
-          Text("Close", color = Color(0xFF94A3B8))
+          Text("Close", color = currentThemeColors.textSecondary)
         }
       },
-      containerColor = Color(0xFF0F172A)
+      containerColor = currentThemeColors.cardBackground
     )
   }
 }
