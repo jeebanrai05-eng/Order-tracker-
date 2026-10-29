@@ -2,11 +2,11 @@
   "versionCode": 8,
   "versionName": "2.0.7",
   "packageName": "com.ordercom",
-  "downloadUrl": "https://github.com/jeebanrai05-eng/Order-tracker-/releases/download/v2.0.7/app-release.apk",
-  "fileSize": 20652215,
-  "sha256": "30927a33d85cd567261f4506c815ba6ef149b36de37a9d36bcffd4a5c795548a",
+  "downloadUrl": "https://github.com/jeebanrai05-eng/Order-tracker-/releases/download/v1.0.4/app-release.apk",
+  "fileSize": 20648767,
+  "sha256": "f3b8d046a169b52dbc246425c3998ac3fa4e5b43cb08ff7cefb66a30d9e3b1c5",
   "certSha256": "2523424FDCA4A6EFAF07756779949EF531C579219488036E19426ADB5DFA9B95",
-  "releaseNotes": "Release v2.0.7: Responsive Top Bar layout fix for Realme 60x and compact devices, clean single-line non-wrapping titles, compact account avatar, empty order placeholder fix, and KSP headless build stabilization.",
+  "releaseNotes": "Release v1.0.4: Google Sign-In setup instructions, SHA-1 registration guidance, and self-update.",
   "releaseDate": "2026-10-29",
   "isMandatory": false
 }
