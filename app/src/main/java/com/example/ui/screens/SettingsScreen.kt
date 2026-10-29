@@ -28,6 +28,8 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowForward
+import androidx.compose.material.icons.automirrored.filled.ExitToApp
+import androidx.compose.material.icons.filled.Sync
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Cloud
 import androidx.compose.material.icons.filled.CloudDone
@@ -374,7 +376,7 @@ fun SettingsScreen(
                       text = "Not Logged in - Data at Risk",
                       fontSize = 13.sp,
                       fontWeight = FontWeight.Bold,
-                      color = Color.White
+                      color = Color(0xFFFCA5A5)
                     )
                     Text(
                       text = "Sign in to backup orders, tips, and salary goals permanently.",
@@ -400,11 +402,12 @@ fun SettingsScreen(
                   )
                 }
               } else {
-                // 1. White Pill Button: Continue with Google
+                // 1. Pill Button: Continue with Google
                 Surface(
                   shape = RoundedCornerShape(14.dp),
-                  color = Color.White,
-                  shadowElevation = 3.dp,
+                  color = if (currentThemeColors.isDark) Color(0xFF0F172A) else Color(0xFFFFFFFF),
+                  border = BorderStroke(1.2.dp, currentThemeColors.cardBorder),
+                  shadowElevation = 2.dp,
                   modifier = Modifier
                     .fillMaxWidth()
                     .clickable { viewModel.signInWithGoogle(context) }
@@ -422,14 +425,14 @@ fun SettingsScreen(
                       text = "Continue with Google",
                       fontSize = 14.sp,
                       fontWeight = FontWeight.Bold,
-                      color = Color(0xFF0F172A)
+                      color = currentThemeColors.textPrimary
                     )
                     Spacer(modifier = Modifier.weight(1f))
                     Text(
                       text = "›",
                       fontSize = 18.sp,
                       fontWeight = FontWeight.ExtraBold,
-                      color = Color(0xFF0284C7)
+                      color = currentThemeColors.primary
                     )
                   }
                 }
@@ -516,12 +519,12 @@ fun SettingsScreen(
                     )
                   },
                   colors = OutlinedTextFieldDefaults.colors(
-                    focusedContainerColor = Color(0xFF070E1A),
-                    unfocusedContainerColor = Color(0xFF070E1A),
+                    focusedContainerColor = if (currentThemeColors.isDark) Color(0xFF070E1A) else Color(0xFFF1F5F9),
+                    unfocusedContainerColor = if (currentThemeColors.isDark) Color(0xFF070E1A) else Color(0xFFF8FAFC),
                     focusedBorderColor = currentThemeColors.primary,
-                    unfocusedBorderColor = Color(0xFF1E293B),
-                    focusedTextColor = Color.White,
-                    unfocusedTextColor = Color.White
+                    unfocusedBorderColor = currentThemeColors.cardBorder,
+                    focusedTextColor = currentThemeColors.textPrimary,
+                    unfocusedTextColor = currentThemeColors.textPrimary
                   ),
                   singleLine = true,
                   shape = RoundedCornerShape(14.dp),
@@ -558,12 +561,12 @@ fun SettingsScreen(
                   visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
                   keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
                   colors = OutlinedTextFieldDefaults.colors(
-                    focusedContainerColor = Color(0xFF070E1A),
-                    unfocusedContainerColor = Color(0xFF070E1A),
+                    focusedContainerColor = if (currentThemeColors.isDark) Color(0xFF070E1A) else Color(0xFFF1F5F9),
+                    unfocusedContainerColor = if (currentThemeColors.isDark) Color(0xFF070E1A) else Color(0xFFF8FAFC),
                     focusedBorderColor = currentThemeColors.primary,
-                    unfocusedBorderColor = Color(0xFF1E293B),
-                    focusedTextColor = Color.White,
-                    unfocusedTextColor = Color.White
+                    unfocusedBorderColor = currentThemeColors.cardBorder,
+                    focusedTextColor = currentThemeColors.textPrimary,
+                    unfocusedTextColor = currentThemeColors.textPrimary
                   ),
                   singleLine = true,
                   shape = RoundedCornerShape(14.dp),
@@ -580,15 +583,19 @@ fun SettingsScreen(
                   horizontalArrangement = Arrangement.SpaceBetween,
                   verticalAlignment = Alignment.CenterVertically
                 ) {
-                  TextButton(
+                  Button(
                     onClick = { viewModel.login(emailInput, passwordInput) },
-                    modifier = Modifier.testTag("btn_auth_login")
+                    colors = ButtonDefaults.buttonColors(
+                      containerColor = currentThemeColors.primary,
+                      contentColor = if (currentThemeColors.isDark) Color.Black else Color.White
+                    ),
+                    shape = RoundedCornerShape(12.dp),
+                    modifier = Modifier.height(44.dp).testTag("btn_auth_login")
                   ) {
                     Text(
                       text = "LOG IN",
-                      fontSize = 14.sp,
-                      fontWeight = FontWeight.Bold,
-                      color = Color.White
+                      fontSize = 13.sp,
+                      fontWeight = FontWeight.ExtraBold
                     )
                   }
 
@@ -659,8 +666,9 @@ fun SettingsScreen(
                   )
                   Text(
                     text = currentAuth.email,
-                    fontSize = 12.sp,
-                    color = Color(0xFF94A3B8)
+                    fontSize = 13.sp,
+                    fontWeight = FontWeight.Medium,
+                    color = currentThemeColors.textPrimary
                   )
                 }
               }
@@ -675,28 +683,38 @@ fun SettingsScreen(
                   onClick = { viewModel.syncCloudData() },
                   colors = ButtonDefaults.buttonColors(
                     containerColor = currentThemeColors.primary,
-                    contentColor = Color.Black
+                    contentColor = if (currentThemeColors.isDark) Color.Black else Color.White
                   ),
                   shape = RoundedCornerShape(12.dp),
                   modifier = Modifier
                     .weight(1f)
-                    .height(44.dp)
+                    .height(46.dp)
                     .testTag("btn_sync_now")
                 ) {
-                  Text("SYNC NOW", fontWeight = FontWeight.Bold, fontSize = 13.sp)
+                  Row(verticalAlignment = Alignment.CenterVertically) {
+                    Icon(imageVector = Icons.Default.Sync, contentDescription = null, modifier = Modifier.size(16.dp))
+                    Spacer(modifier = Modifier.width(6.dp))
+                    Text("SYNC NOW", fontWeight = FontWeight.Bold, fontSize = 13.sp)
+                  }
                 }
 
-                OutlinedButton(
+                Button(
                   onClick = { viewModel.logout() },
+                  colors = ButtonDefaults.buttonColors(
+                    containerColor = Color(0xFFEF4444),
+                    contentColor = Color.White
+                  ),
                   shape = RoundedCornerShape(12.dp),
-                  colors = ButtonDefaults.outlinedButtonColors(contentColor = Color.White),
-                  border = BorderStroke(1.dp, Color(0xFF334155)),
                   modifier = Modifier
                     .weight(1f)
-                    .height(44.dp)
+                    .height(46.dp)
                     .testTag("btn_logout")
                 ) {
-                  Text("LOG OUT", fontSize = 13.sp)
+                  Row(verticalAlignment = Alignment.CenterVertically) {
+                    Icon(imageVector = Icons.AutoMirrored.Filled.ExitToApp, contentDescription = null, modifier = Modifier.size(16.dp), tint = Color.White)
+                    Spacer(modifier = Modifier.width(6.dp))
+                    Text("LOG OUT", fontWeight = FontWeight.Bold, fontSize = 13.sp)
+                  }
                 }
               }
             }
@@ -745,7 +763,7 @@ fun SettingsScreen(
                 text = "Night Mode (Dark)",
                 fontSize = 15.sp,
                 fontWeight = FontWeight.Bold,
-                color = Color.White
+                color = currentThemeColors.textPrimary
               )
               Text(
                 text = "Reduce eye strain in low light",
@@ -807,7 +825,7 @@ fun SettingsScreen(
                 text = "Daily Earnings Goal",
                 fontSize = 15.sp,
                 fontWeight = FontWeight.Bold,
-                color = Color.White
+                color = currentThemeColors.textPrimary
               )
             }
 
@@ -1206,7 +1224,7 @@ fun SettingsScreen(
                 text = "Luxury Themes",
                 fontSize = 15.sp,
                 fontWeight = FontWeight.Bold,
-                color = Color.White
+                color = currentThemeColors.textPrimary
               )
             }
 
@@ -1324,10 +1342,10 @@ fun SettingsScreen(
             }
             Spacer(modifier = Modifier.width(12.dp))
             Text(
-              text = "Notifications & Shift Reminders",
+              text = "Notification Time Management & Reminders",
               fontSize = 15.sp,
               fontWeight = FontWeight.Bold,
-              color = Color.White
+              color = currentThemeColors.textPrimary
             )
           }
 
@@ -1347,7 +1365,7 @@ fun SettingsScreen(
                 modifier = Modifier
                   .size(38.dp)
                   .clip(RoundedCornerShape(10.dp))
-                  .background(Color(0xFF0891B2).copy(alpha = 0.25f)),
+                  .background(currentThemeColors.primary.copy(alpha = 0.2f)),
                 contentAlignment = Alignment.Center
               ) {
                 Text(text = "⏰", fontSize = 18.sp)
@@ -1360,12 +1378,12 @@ fun SettingsScreen(
                   text = "Duty / Shift End Reminder",
                   fontSize = 14.sp,
                   fontWeight = FontWeight.Bold,
-                  color = Color(0xFF38BDF8)
+                  color = currentThemeColors.primary
                 )
                 Text(
                   text = "Pops up notification right at shift finish to log deliveries & tips!",
                   fontSize = 11.sp,
-                  color = Color(0xFF94A3B8)
+                  color = currentThemeColors.textSecondary
                 )
               }
             }
@@ -1381,7 +1399,7 @@ fun SettingsScreen(
               },
               colors = SwitchDefaults.colors(
                 checkedThumbColor = Color.White,
-                checkedTrackColor = Color(0xFF0284C7)
+                checkedTrackColor = currentThemeColors.primary
               ),
               modifier = Modifier.testTag("switch_duty_reminder")
             )
@@ -1398,8 +1416,8 @@ fun SettingsScreen(
             modifier = Modifier
               .fillMaxWidth()
               .clip(RoundedCornerShape(12.dp))
-              .background(Color(0xFF070E1A))
-              .border(1.dp, Color(0xFF1E293B), RoundedCornerShape(12.dp))
+              .background(if (currentThemeColors.isDark) Color(0xFF070E1A) else Color(0xFFF1F5F9))
+              .border(1.dp, currentThemeColors.cardBorder, RoundedCornerShape(12.dp))
               .clickable { showDutyTimeDialog = true }
               .padding(horizontal = 14.dp, vertical = 11.dp),
             horizontalArrangement = Arrangement.SpaceBetween,
@@ -1412,16 +1430,89 @@ fun SettingsScreen(
                 text = "Shift Finish Time",
                 fontSize = 13.sp,
                 fontWeight = FontWeight.SemiBold,
-                color = Color.White
+                color = currentThemeColors.textPrimary
               )
             }
 
             Row(verticalAlignment = Alignment.CenterVertically) {
               Text(
                 text = "$formattedTime  ›",
-                fontSize = 13.sp,
+                fontSize = 14.sp,
+                fontWeight = FontWeight.ExtraBold,
+                color = currentThemeColors.primary
+              )
+            }
+          }
+
+          Spacer(modifier = Modifier.height(10.dp))
+
+          // 1-Tap Quick Shift Preset Chips
+          Text(
+            text = "⚡ 1-Tap Quick Reminder Times:",
+            fontSize = 11.sp,
+            fontWeight = FontWeight.Bold,
+            color = currentThemeColors.textSecondary
+          )
+          Spacer(modifier = Modifier.height(6.dp))
+
+          Row(
+            modifier = Modifier
+              .fillMaxWidth()
+              .horizontalScroll(rememberScrollState()),
+            horizontalArrangement = Arrangement.spacedBy(8.dp)
+          ) {
+            val presets = listOf(
+              Triple("8:00 PM", 20, 0),
+              Triple("9:00 PM", 21, 0),
+              Triple("10:00 PM", 22, 0),
+              Triple("11:00 PM", 23, 0),
+              Triple("12:00 AM", 0, 0)
+            )
+
+            presets.forEach { (label, h, m) ->
+              val isSelected = settings.dutyEndHour == h && settings.dutyEndMinute == m
+              Box(
+                modifier = Modifier
+                  .clip(RoundedCornerShape(10.dp))
+                  .background(
+                    if (isSelected) currentThemeColors.primary
+                    else if (currentThemeColors.isDark) Color(0xFF070E1A)
+                    else Color(0xFFF1F5F9)
+                  )
+                  .border(
+                    1.dp,
+                    if (isSelected) currentThemeColors.primary else currentThemeColors.cardBorder,
+                    RoundedCornerShape(10.dp)
+                  )
+                  .clickable {
+                    viewModel.updateDutyEndReminder(enabled = true, hour = h, minute = m)
+                    viewModel.showSnackbar("Shift Reminder set to $label")
+                  }
+                  .padding(horizontal = 10.dp, vertical = 6.dp)
+              ) {
+                Text(
+                  text = label,
+                  fontSize = 12.sp,
+                  fontWeight = if (isSelected) FontWeight.Black else FontWeight.SemiBold,
+                  color = if (isSelected) Color.Black else currentThemeColors.textPrimary
+                )
+              }
+            }
+
+            // Custom Time Chip
+            Box(
+              modifier = Modifier
+                .clip(RoundedCornerShape(10.dp))
+                .background(currentThemeColors.primary.copy(alpha = 0.15f))
+                .border(1.dp, currentThemeColors.primary.copy(alpha = 0.5f), RoundedCornerShape(10.dp))
+                .clickable { showDutyTimeDialog = true }
+                .padding(horizontal = 10.dp, vertical = 6.dp)
+            ) {
+              Text(
+                text = "⏰ Custom...",
+                fontSize = 12.sp,
                 fontWeight = FontWeight.Bold,
-                color = Color(0xFF38BDF8)
+                color = currentThemeColors.primary
               )
             }
           }
@@ -1432,8 +1523,8 @@ fun SettingsScreen(
           OutlinedButton(
             onClick = { viewModel.triggerTestDutyReminder() },
             shape = RoundedCornerShape(12.dp),
-            colors = ButtonDefaults.outlinedButtonColors(contentColor = Color(0xFF38BDF8)),
-            border = BorderStroke(1.dp, Color(0xFF0284C7).copy(alpha = 0.5f)),
+            colors = ButtonDefaults.outlinedButtonColors(contentColor = currentThemeColors.primary),
+            border = BorderStroke(1.dp, currentThemeColors.primary.copy(alpha = 0.5f)),
             modifier = Modifier
               .fillMaxWidth()
               .height(42.dp)
@@ -1592,7 +1683,7 @@ fun SettingsScreen(
                 color = currentThemeColors.textPrimary
               )
               Text(
-                text = "Version 2.0.6 (Build 7)",
+                text = "Version 2.0.7 (Build 8)",
                 fontSize = 12.sp,
                 fontWeight = FontWeight.Bold,
                 color = Color(0xFF10B981)
@@ -1640,7 +1731,7 @@ fun SettingsScreen(
               Text(text = "✨", fontSize = 14.sp)
               Spacer(modifier = Modifier.width(6.dp))
               Text(
-                text = "What's New in v2.0.6",
+                text = "What's New in v2.0.7",
                 fontSize = 12.sp,
                 fontWeight = FontWeight.Bold,
                 color = currentThemeColors.primary
@@ -1650,7 +1741,7 @@ fun SettingsScreen(
             Spacer(modifier = Modifier.height(8.dp))
 
             Text(
-              text = "• ☀️ Pure Professional White Mode: Ultra-clean, crisp white canvas with high-contrast slate typography and vibrant neon accents.\n• 🌍 Worldwide Currencies with Flags: Full global currency registry covering Nepal (NPR Rs.), Kuwait (KWD KD), India (INR ₹), UAE (AED), USA (USD $), UK (GBP £), Euro (EUR €), and 35+ more countries with real flags.\n• ⚡ 1-Tap Auto-Detect Country: Automatically detects your device locale and configures the native currency instantly.\n• 💎 Complete Luxury Theme Harmonization: All 8 themes (Glass Neo, Neon Cyan, Luxury Gold, Imperial Jade, Mid Purple, etc.) adapt seamlessly across light and dark modes.\n• 🔒 Verified RSA Cryptographic Signature: Self-updater now validates official certificate fingerprint to eliminate SHA-256 false alarms.",
+              text = "• 📱 Order Fill Boxes Full Screen Visibility: Hero target progress card now scrolls seamlessly with the daily order list, and 140dp bottom padding ensures daily entry rows are never clipped or covered by the bottom bar.\n• 🔑 High-Contrast Log In & Log Out Buttons: Prominent high-contrast Log In buttons and vivid Red 1-Tap Log Out buttons added across the Top Bar, Settings, and Account Dialog.\n• ⏰ Notification Time Management & 1-Tap Presets: Notification & Shift Reminders section prominently redesigned with 1-tap quick preset shift end times (8:00 PM, 9:00 PM, 10:00 PM, 11:00 PM, 12:00 AM) and crystal-clear time picker controls in both light and dark modes.\n• ☀️ Full White Mode Color Uniformity: Fixed all white-on-white text issues so every button, label, and dialog is immediately visible and readable.",
               fontSize = 11.sp,
               lineHeight = 16.sp,
               color = currentThemeColors.textSecondary
@@ -1742,7 +1833,7 @@ fun SettingsScreen(
         Row(verticalAlignment = Alignment.CenterVertically) {
           Text("⏰", fontSize = 20.sp)
           Spacer(modifier = Modifier.width(8.dp))
-          Text("Shift Finish Time", fontWeight = FontWeight.Bold, fontSize = 17.sp, color = Color.White)
+          Text("Shift Finish Time", fontWeight = FontWeight.Bold, fontSize = 17.sp, color = currentThemeColors.textPrimary)
         }
       },
       text = {
@@ -1753,7 +1844,7 @@ fun SettingsScreen(
           Text(
             text = "Select when your delivery duty ends to receive the order logging reminder:",
             fontSize = 12.sp,
-            color = Color(0xFF94A3B8)
+            color = currentThemeColors.textSecondary
           )
           Spacer(modifier = Modifier.height(16.dp))
 
@@ -1766,11 +1857,11 @@ fun SettingsScreen(
           ) {
             // Hour controls
             Column(horizontalAlignment = Alignment.CenterHorizontally) {
-              Text("HOUR", fontSize = 10.sp, fontWeight = FontWeight.Bold, color = Color(0xFF94A3B8))
+              Text("HOUR", fontSize = 10.sp, fontWeight = FontWeight.Bold, color = currentThemeColors.textMuted)
               Spacer(modifier = Modifier.height(4.dp))
               Row(verticalAlignment = Alignment.CenterVertically) {
                 IconButton(onClick = { tempHour = (tempHour - 1 + 24) % 24 }) {
-                  Text("▼", fontSize = 16.sp, fontWeight = FontWeight.Bold, color = Color.White)
+                  Text("▼", fontSize = 16.sp, fontWeight = FontWeight.Bold, color = currentThemeColors.textPrimary)
                 }
                 Text(
                   text = "%02d".format(displayHour),
@@ -1779,22 +1870,22 @@ fun SettingsScreen(
                   color = currentThemeColors.primary
                 )
                 IconButton(onClick = { tempHour = (tempHour + 1) % 24 }) {
-                  Text("▲", fontSize = 16.sp, fontWeight = FontWeight.Bold, color = Color.White)
+                  Text("▲", fontSize = 16.sp, fontWeight = FontWeight.Bold, color = currentThemeColors.textPrimary)
                 }
               }
             }
 
             Spacer(modifier = Modifier.width(8.dp))
-            Text(":", fontSize = 24.sp, fontWeight = FontWeight.Bold, color = Color.White)
+            Text(":", fontSize = 24.sp, fontWeight = FontWeight.Bold, color = currentThemeColors.textPrimary)
             Spacer(modifier = Modifier.width(8.dp))
 
             // Minute controls
             Column(horizontalAlignment = Alignment.CenterHorizontally) {
-              Text("MINUTE", fontSize = 10.sp, fontWeight = FontWeight.Bold, color = Color(0xFF94A3B8))
+              Text("MINUTE", fontSize = 10.sp, fontWeight = FontWeight.Bold, color = currentThemeColors.textMuted)
               Spacer(modifier = Modifier.height(4.dp))
               Row(verticalAlignment = Alignment.CenterVertically) {
                 IconButton(onClick = { tempMinute = (tempMinute - 15 + 60) % 60 }) {
-                  Text("▼", fontSize = 16.sp, fontWeight = FontWeight.Bold, color = Color.White)
+                  Text("▼", fontSize = 16.sp, fontWeight = FontWeight.Bold, color = currentThemeColors.textPrimary)
                 }
                 Text(
                   text = "%02d".format(tempMinute),
@@ -1803,7 +1894,7 @@ fun SettingsScreen(
                   color = currentThemeColors.primary
                 )
                 IconButton(onClick = { tempMinute = (tempMinute + 15) % 60 }) {
-                  Text("▲", fontSize = 16.sp, fontWeight = FontWeight.Bold, color = Color.White)
+                  Text("▲", fontSize = 16.sp, fontWeight = FontWeight.Bold, color = currentThemeColors.textPrimary)
                 }
               }
             }

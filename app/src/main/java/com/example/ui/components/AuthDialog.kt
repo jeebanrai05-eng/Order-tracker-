@@ -21,6 +21,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ExitToApp
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.CloudDone
@@ -277,7 +278,7 @@ fun AuthDialog(
               Spacer(modifier = Modifier.height(12.dp))
 
               // Sign Out Button
-              OutlinedButton(
+              Button(
                 onClick = {
                   viewModel.logout()
                   onDismiss()
@@ -287,14 +288,25 @@ fun AuthDialog(
                   .height(48.dp)
                   .testTag("btn_logout_modal"),
                 shape = RoundedCornerShape(14.dp),
-                border = BorderStroke(1.dp, WarningRed.copy(alpha = 0.6f)),
-                colors = ButtonDefaults.outlinedButtonColors(contentColor = WarningRed)
-              ) {
-                Text(
-                  text = "Log Out of Account",
-                  fontSize = 14.sp,
-                  fontWeight = FontWeight.Bold
+                colors = ButtonDefaults.buttonColors(
+                  containerColor = Color(0xFFEF4444),
+                  contentColor = Color.White
                 )
+              ) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                  Icon(
+                    imageVector = Icons.AutoMirrored.Filled.ExitToApp,
+                    contentDescription = null,
+                    modifier = Modifier.size(18.dp),
+                    tint = Color.White
+                  )
+                  Spacer(modifier = Modifier.width(8.dp))
+                  Text(
+                    text = "Log Out of Account",
+                    fontSize = 14.sp,
+                    fontWeight = FontWeight.Bold
+                  )
+                }
               }
             }
           }

@@ -25,6 +25,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ExitToApp
 import androidx.compose.material.icons.filled.CloudDone
 import androidx.compose.material.icons.filled.DarkMode
 import androidx.compose.material.icons.filled.LightMode
@@ -282,41 +283,61 @@ fun UniversalAppTopBar(
           // User Profile / Sign In Pill Button
           when (val currentAuth = authState) {
             is AuthUiState.LoggedIn -> {
-              // User avatar pill
-              Box(
-                modifier = Modifier
-                  .clip(RoundedCornerShape(20.dp))
-                  .background(themeColors.primary.copy(alpha = 0.15f))
-                  .border(1.dp, themeColors.primary.copy(alpha = 0.4f), RoundedCornerShape(20.dp))
-                  .clickable { onOpenAuthDialog() }
-                  .padding(horizontal = 10.dp, vertical = 5.dp)
-                  .testTag("btn_top_profile"),
-                contentAlignment = Alignment.Center
+              Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(4.dp)
               ) {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                  Box(
-                    modifier = Modifier
-                      .size(20.dp)
-                      .clip(CircleShape)
-                      .background(themeColors.primary),
-                    contentAlignment = Alignment.Center
-                  ) {
-                    val initial = currentAuth.displayName.firstOrNull()?.uppercase()
-                      ?: currentAuth.email.firstOrNull()?.uppercase()
-                      ?: "U"
+                // User avatar pill
+                Box(
+                  modifier = Modifier
+                    .clip(RoundedCornerShape(20.dp))
+                    .background(themeColors.primary.copy(alpha = 0.15f))
+                    .border(1.dp, themeColors.primary.copy(alpha = 0.4f), RoundedCornerShape(20.dp))
+                    .clickable { onOpenAuthDialog() }
+                    .padding(horizontal = 10.dp, vertical = 5.dp)
+                    .testTag("btn_top_profile"),
+                  contentAlignment = Alignment.Center
+                ) {
+                  Row(verticalAlignment = Alignment.CenterVertically) {
+                    Box(
+                      modifier = Modifier
+                        .size(20.dp)
+                        .clip(CircleShape)
+                        .background(themeColors.primary),
+                      contentAlignment = Alignment.Center
+                    ) {
+                      val initial = currentAuth.displayName.firstOrNull()?.uppercase()
+                        ?: currentAuth.email.firstOrNull()?.uppercase()
+                        ?: "U"
+                      Text(
+                        text = initial,
+                        fontSize = 11.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = Color.Black
+                      )
+                    }
+                    Spacer(modifier = Modifier.width(6.dp))
                     Text(
-                      text = initial,
-                      fontSize = 11.sp,
+                      text = "Account",
+                      fontSize = 12.sp,
                       fontWeight = FontWeight.Bold,
-                      color = Color.Black
+                      color = themeColors.textPrimary
                     )
                   }
-                  Spacer(modifier = Modifier.width(6.dp))
-                  Text(
-                    text = "Account",
-                    fontSize = 12.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.onSurface
+                }
+
+                // Explicit 1-tap Logout icon button
+                IconButton(
+                  onClick = { viewModel.logout() },
+                  modifier = Modifier
+                    .size(32.dp)
+                    .testTag("btn_top_logout")
+                ) {
+                  Icon(
+                    imageVector = Icons.AutoMirrored.Filled.ExitToApp,
+                    contentDescription = "Log Out",
+                    tint = WarningRed,
+                    modifier = Modifier.size(19.dp)
                   )
                 }
               }
@@ -331,6 +352,7 @@ fun UniversalAppTopBar(
                       listOf(themeColors.primary, themeColors.variant)
                     )
                   )
+                  .border(1.dp, themeColors.primary, RoundedCornerShape(20.dp))
                   .clickable { onOpenAuthDialog() }
                   .padding(horizontal = 12.dp, vertical = 6.dp)
                   .testTag("btn_top_login"),
@@ -342,7 +364,7 @@ fun UniversalAppTopBar(
                   Text(
                     text = "Sign In",
                     fontSize = 12.sp,
-                    fontWeight = FontWeight.Bold,
+                    fontWeight = FontWeight.ExtraBold,
                     color = Color.Black
                   )
                 }
@@ -352,7 +374,7 @@ fun UniversalAppTopBar(
         }
       }
 
-      Spacer(modifier = Modifier.height(6.dp))
+      Spacer(modifier = Modifier.height(4.dp))
 
       // --- 3. TODAY HIGHLIGHT BAR (Prominently mentions Day: SUN, TUE, SAT, FRI, MON etc.) ---
       Card(
@@ -361,19 +383,19 @@ fun UniversalAppTopBar(
           .scale(pulseScale)
           .clickable { onQuickLogToday() }
           .testTag("card_today_highlight"),
-        shape = RoundedCornerShape(14.dp),
+        shape = RoundedCornerShape(12.dp),
         colors = CardDefaults.cardColors(
           containerColor = themeColors.cardBackground
         ),
         border = BorderStroke(
-          1.2.dp,
+          1.dp,
           themeColors.cardBorder
         )
       ) {
         Row(
           modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = 12.dp, vertical = 8.dp),
+            .padding(horizontal = 10.dp, vertical = 6.dp),
           horizontalArrangement = Arrangement.SpaceBetween,
           verticalAlignment = Alignment.CenterVertically
         ) {

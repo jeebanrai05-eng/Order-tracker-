@@ -128,7 +128,7 @@ fun OrdersScreen(
   // Scroll to today's row when current month loads
   LaunchedEffect(isViewingCurrentMonth, year, month) {
     if (isViewingCurrentMonth && todayDay in 1..daysInMonth) {
-      val targetIndex = (todayDay - 1).coerceAtLeast(0)
+      val targetIndex = todayDay.coerceAtLeast(0)
       listState.animateScrollToItem(targetIndex)
     }
   }
@@ -211,19 +211,9 @@ fun OrdersScreen(
         }
       )
 
-      Spacer(modifier = Modifier.height(8.dp))
+      Spacer(modifier = Modifier.height(4.dp))
 
-      // 2. Hero Target Progress Card matching screenshot
-      HeroTargetProgressCard(
-        summary = summary,
-        settings = settings,
-        monthName = monthName,
-        modifier = Modifier.padding(horizontal = 16.dp)
-      )
-
-      Spacer(modifier = Modifier.height(10.dp))
-
-      // 3. Horizontal Filter Chips Bar: [All Days (31)] [Worked (17)] [Gas Logged (0)] [Goal Met (0)]
+      // 2. Horizontal Filter Chips Bar: [All Days (31)] [Worked (17)] [Gas Logged (0)] [Goal Met (0)]
       Row(
         modifier = Modifier
           .fillMaxWidth()
@@ -407,9 +397,19 @@ fun OrdersScreen(
           modifier = Modifier
             .fillMaxWidth()
             .weight(1f),
-          contentPadding = PaddingValues(start = 16.dp, end = 16.dp, bottom = 110.dp),
+          contentPadding = PaddingValues(start = 14.dp, end = 14.dp, top = 2.dp, bottom = 140.dp),
           verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
+          // 1. Hero Target Progress Card (scrolls naturally with order list to free screen space)
+          item(key = "hero_target_progress") {
+            HeroTargetProgressCard(
+              summary = summary,
+              settings = settings,
+              monthName = monthName,
+              modifier = Modifier.padding(bottom = 2.dp)
+            )
+          }
+
           items(filteredDays.size, key = { filteredDays[it] }) { idx ->
             val dayNum = filteredDays[idx]
             val record = ordersMap[dayNum]

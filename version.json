@@ -1,12 +1,12 @@
 {
-  "versionCode": 7,
-  "versionName": "2.0.6",
+  "versionCode": 8,
+  "versionName": "2.0.7",
   "packageName": "com.ordercom",
-  "downloadUrl": "https://github.com/jeebanrai05-eng/Order-tracker-/releases/download/v1.0.4/app-release.apk",
-  "fileSize": 20648767,
-  "sha256": "d3a876f4d3403398e5b5eeab690ed3c0b72e906e4ef45315469fa476cfcc3306",
+  "downloadUrl": "https://github.com/jeebanrai05-eng/Order-tracker-/releases/download/v2.0.7/app-release.apk",
+  "fileSize": 20652215,
+  "sha256": "65d1d5df83dc4110e1a24a4fa564e1874b263b887c45c0ceb8ead59183b59136",
   "certSha256": "2523424FDCA4A6EFAF07756779949EF531C579219488036E19426ADB5DFA9B95",
-  "releaseNotes": "Release v1.0.4: Google Sign-In setup instructions, SHA-1 registration guidance, and self-update.",
+  "releaseNotes": "Release v2.0.7: Fix order fill boxes screen coverage, high-contrast Log In and 1-tap Red Log Out buttons, front-and-center Notification Time Management with 1-tap quick presets (8PM, 9PM, 10PM, 11PM, 12AM), and full white mode readability.",
   "releaseDate": "2026-10-29",
   "isMandatory": false
 }
